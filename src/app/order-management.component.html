@@ -1,18 +1,23 @@
 <section class="orders-heading">
   <div>
-    <span class="orders-eyebrow">STORE OPERATIONS</span>
-    <h1>Orders<span>.</span></h1>
-    <p>Review and manage orders from your store.</p>
+    <span class="orders-eyebrow">จัดการรายการขาย</span>
+    <h1>ออเดอร์<span>.</span></h1>
+    <p>ตรวจสอบและจัดการออเดอร์ของร้าน</p>
   </div>
   <div class="orders-heading-actions">
     @if (selectedOrderIds().length > 0) {
-      <button class="orders-secondary-action" type="button" [disabled]="printSettingsLoading()" (click)="printSelectedLabels()">
-        Print / Export PDF ({{ selectedOrderIds().length }})
+      <button
+        class="orders-secondary-action"
+        type="button"
+        [disabled]="printSettingsLoading()"
+        (click)="printSelectedLabels()"
+      >
+        พิมพ์ / ส่งออก PDF ({{ selectedOrderIds().length }})
       </button>
     }
     <button class="orders-primary" type="button" (click)="openCreateForm()">
       <span aria-hidden="true">+</span>
-      Create order
+      สร้างออเดอร์
     </button>
   </div>
 </section>
@@ -20,108 +25,145 @@
 @if (errorMessage() && !showCreateForm() && !selectedOrder()) {
   <div class="orders-alert" role="alert">
     {{ errorMessage() }}
-    <button type="button" aria-label="Dismiss message" (click)="errorMessage.set('')">×</button>
+    <button type="button" aria-label="ปิดข้อความ" (click)="errorMessage.set('')">×</button>
   </div>
 }
 @if (notice()) {
   <div class="orders-notice" role="status">
     {{ notice() }}
-    <button type="button" aria-label="Dismiss message" (click)="notice.set('')">×</button>
+    <button type="button" aria-label="ปิดข้อความ" (click)="notice.set('')">×</button>
   </div>
 }
 
-<section class="orders-toolbar" aria-label="Order filters">
+<section class="orders-toolbar" aria-label="ตัวกรองออเดอร์">
   <label class="orders-search">
-    <span class="visually-hidden">Search orders</span>
+    <span class="visually-hidden">ค้นหาออเดอร์</span>
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.5"/>
-      <path d="m13.2 13.2 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.5" />
+      <path d="m13.2 13.2 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
     </svg>
     <input
       type="search"
-      placeholder="Order number, customer or phone"
-      aria-label="Search orders"
+      placeholder="เลขออเดอร์ ชื่อลูกค้า หรือเบอร์โทร"
+      aria-label="ค้นหาออเดอร์"
       [ngModel]="search()"
       (ngModelChange)="search.set($event)"
       (keyup.enter)="applyFilters()"
     />
   </label>
   <label class="orders-filter">
-    <span class="visually-hidden">Order status</span>
-    <select aria-label="Filter by order status" [ngModel]="orderStatusFilter()" (ngModelChange)="orderStatusFilter.set($event); applyFilters()">
-      <option value="">All order statuses</option>
+    <span class="visually-hidden">สถานะออเดอร์</span>
+    <select
+      aria-label="กรองตามสถานะออเดอร์"
+      [ngModel]="orderStatusFilter()"
+      (ngModelChange)="orderStatusFilter.set($event); applyFilters()"
+    >
+      <option value="">ทุกสถานะออเดอร์</option>
       @for (status of orderStatusOptions; track status) {
         <option [value]="status">{{ statusLabel(status) }}</option>
       }
     </select>
   </label>
   <label class="orders-filter">
-    <span class="visually-hidden">Payment status</span>
-    <select aria-label="Filter by payment status" [ngModel]="paymentStatusFilter()" (ngModelChange)="paymentStatusFilter.set($event); applyFilters()">
-      <option value="">All payment statuses</option>
+    <span class="visually-hidden">สถานะการชำระเงิน</span>
+    <select
+      aria-label="กรองตามสถานะการชำระเงิน"
+      [ngModel]="paymentStatusFilter()"
+      (ngModelChange)="paymentStatusFilter.set($event); applyFilters()"
+    >
+      <option value="">ทุกสถานะการชำระเงิน</option>
       @for (status of paymentStatusOptions; track status) {
         <option [value]="status">{{ statusLabel(status) }}</option>
       }
     </select>
   </label>
-  <button class="orders-search-button" type="button" (click)="applyFilters()">Search</button>
+  <button class="orders-search-button" type="button" (click)="applyFilters()">ค้นหา</button>
 </section>
 
-<section class="orders-table-wrap" aria-label="Orders">
+<section class="orders-table-wrap" aria-label="รายการออเดอร์">
   @if (loading()) {
-    <div class="orders-loading"><span class="orders-spinner"></span> Loading orders...</div>
+    <div class="orders-loading"><span class="orders-spinner"></span> กำลังโหลดออเดอร์...</div>
   } @else if (orders().length === 0) {
     <div class="orders-empty">
       <span class="empty-icon" aria-hidden="true">□</span>
-      <h2>No orders found</h2>
-      <p>Orders matching your search will appear here.</p>
+      <h2>ไม่พบออเดอร์</h2>
+      <p>ออเดอร์ที่ตรงกับคำค้นหาจะแสดงที่นี่</p>
     </div>
   } @else {
     <table class="orders-table">
       <thead>
         <tr>
           <th class="select-col">
-            <input type="checkbox" aria-label="Select all orders on this page" [checked]="allOrdersSelected" (change)="onSelectAllChanged($event)" />
+            <input
+              type="checkbox"
+              aria-label="เลือกออเดอร์ทั้งหมดในหน้านี้"
+              [checked]="allOrdersSelected"
+              (change)="onSelectAllChanged($event)"
+            />
           </th>
-          <th>Order</th>
-          <th>Customer</th>
-          <th>Created by</th>
-          <th>Order status</th>
-          <th>Payment</th>
-          <th class="amount-col">Total</th>
-          <th class="amount-col">Product Cost</th>
-          <th class="amount-col">Gross Profit</th>
-          <th class="amount-col">Commission</th>
-          <th><span class="visually-hidden">Actions</span></th>
+          <th>ออเดอร์</th>
+          <th>ลูกค้า</th>
+          <th>ผู้สร้าง</th>
+          <th>สถานะออเดอร์</th>
+          <th>การชำระเงิน</th>
+          <th class="amount-col">ยอดรวม</th>
+          <th class="amount-col">ต้นทุนสินค้า</th>
+          <th class="amount-col">กำไรขั้นต้น</th>
+          <th class="amount-col">ค่าคอมมิชชัน</th>
+          <th><span class="visually-hidden">การดำเนินการ</span></th>
         </tr>
       </thead>
       <tbody>
         @for (order of orders(); track trackOrder($index, order)) {
           <tr>
             <td class="select-col">
-              <input type="checkbox" [attr.aria-label]="'Select ' + order.orderNumber" [checked]="isOrderSelected(order._id)" (change)="onOrderSelectionChanged(order._id, $event)" />
+              <input
+                type="checkbox"
+                [attr.aria-label]="'เลือก ' + order.orderNumber"
+                [checked]="isOrderSelected(order._id)"
+                (change)="onOrderSelectionChanged(order._id, $event)"
+              />
             </td>
             <td>
               <button class="order-number" type="button" (click)="openOrder(order)">
                 {{ order.orderNumber }}
               </button>
-              <small>{{ order.createdAt | date:'medium' }}</small>
+              <small>{{ formatDate(order.createdAt, 'medium', 'medium') }}</small>
             </td>
             <td>
               <strong class="customer-name">{{ order.customer.name }}</strong>
               <small>{{ order.customer.phone }}</small>
             </td>
             <td>{{ order.createdByName }}</td>
-            <td><span class="status-pill" [attr.data-status]="order.orderStatus">{{ statusLabel(order.orderStatus) }}</span></td>
             <td>
-              <span class="payment-method">{{ order.paymentMethod === 'cod' ? 'COD' : 'Transfer' }}</span>
+              <span class="status-pill" [attr.data-status]="order.orderStatus">{{
+                statusLabel(order.orderStatus)
+              }}</span>
+            </td>
+            <td>
+              <span class="payment-method">{{
+                order.paymentMethod === 'cod' ? 'เก็บเงินปลายทาง' : 'โอนเงิน'
+              }}</span>
               <small>{{ statusLabel(order.paymentStatus) }}</small>
             </td>
             <td class="amount-col">{{ money(order.totalCents) }}</td>
             <td class="amount-col">{{ money(order.productCostCents) }}</td>
             <td class="amount-col">{{ money(order.grossProfitCents) }}</td>
             <td class="amount-col">{{ money(order.commissionCents) }}</td>
-            <td><div class="order-row-actions"><button class="view-order" type="button" (click)="openOrder(order)">View</button><button class="view-order" type="button" [disabled]="printSettingsLoading()" (click)="printOrderLabel(order)">Print</button></div></td>
+            <td>
+              <div class="order-row-actions">
+                <button class="view-order" type="button" (click)="openOrder(order)">
+                  ดูรายละเอียด</button
+                ><button
+                  class="view-order"
+                  type="button"
+                  [disabled]="printSettingsLoading()"
+                  (click)="printOrderLabel(order)"
+                >
+                  พิมพ์
+                </button>
+              </div>
+            </td>
           </tr>
         }
       </tbody>
@@ -130,23 +172,44 @@
 </section>
 
 <footer class="orders-pagination">
-  <span>{{ total() }} orders</span>
+  <span>ทั้งหมด {{ total() }} ออเดอร์</span>
   <div>
-    <button type="button" [disabled]="page() <= 1 || loading()" (click)="changePage(page() - 1)">Previous</button>
-    <span>Page {{ pages() === 0 ? 0 : page() }} of {{ pages() }}</span>
-    <button type="button" [disabled]="page() >= pages() || loading()" (click)="changePage(page() + 1)">Next</button>
+    <button type="button" [disabled]="page() <= 1 || loading()" (click)="changePage(page() - 1)">
+      ก่อนหน้า
+    </button>
+    <span>หน้า {{ pages() === 0 ? 0 : page() }} จาก {{ pages() }}</span>
+    <button
+      type="button"
+      [disabled]="page() >= pages() || loading()"
+      (click)="changePage(page() + 1)"
+    >
+      ถัดไป
+    </button>
   </div>
 </footer>
 
 @if (showCreateForm()) {
   <div class="order-modal-backdrop">
-    <section class="order-modal order-create-modal" role="dialog" aria-modal="true" aria-labelledby="create-order-title">
+    <section
+      class="order-modal order-create-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-order-title"
+    >
       <header class="order-modal-header">
         <div>
-          <span class="orders-eyebrow">NEW SALE</span>
-          <h2 id="create-order-title">Create order</h2>
+          <span class="orders-eyebrow">รายการขายใหม่</span>
+          <h2 id="create-order-title">สร้างออเดอร์</h2>
         </div>
-        <button type="button" class="modal-close" aria-label="Close" [disabled]="saving()" (click)="closeCreateForm()">×</button>
+        <button
+          type="button"
+          class="modal-close"
+          aria-label="ปิด"
+          [disabled]="saving()"
+          (click)="closeCreateForm()"
+        >
+          ×
+        </button>
       </header>
       <form #createForm="ngForm" (ngSubmit)="saveNewOrder()">
         <div class="order-modal-body">
@@ -154,59 +217,93 @@
             <div class="orders-alert" role="alert">{{ errorMessage() }}</div>
           }
           <section class="form-section">
-            <h3>Customer details</h3>
+            <h3>ข้อมูลลูกค้า</h3>
             <div class="order-form-grid">
               <label class="form-wide">
-                <span>Customer name *</span>
-                <input name="customerName" [(ngModel)]="orderForm.customerName" required maxlength="150" />
+                <span>ชื่อลูกค้า *</span>
+                <input
+                  name="customerName"
+                  [(ngModel)]="orderForm.customerName"
+                  required
+                  maxlength="150"
+                />
               </label>
               <label>
-                <span>Phone number *</span>
-                <input name="customerPhone" [(ngModel)]="orderForm.customerPhone" required maxlength="30" />
+                <span>เบอร์โทรศัพท์ *</span>
+                <input
+                  name="customerPhone"
+                  [(ngModel)]="orderForm.customerPhone"
+                  required
+                  maxlength="30"
+                />
               </label>
               <label>
-                <span>Facebook name</span>
+                <span>ชื่อ Facebook</span>
                 <input name="facebookName" [(ngModel)]="orderForm.facebookName" maxlength="150" />
               </label>
               <label class="form-wide">
-                <span>Address *</span>
-                <input name="addressLine" [(ngModel)]="orderForm.addressLine" required maxlength="500" />
+                <span>ที่อยู่ *</span>
+                <input
+                  name="addressLine"
+                  [(ngModel)]="orderForm.addressLine"
+                  required
+                  maxlength="500"
+                />
               </label>
               <label>
-                <span>Subdistrict *</span>
-                <input name="subdistrict" [(ngModel)]="orderForm.subdistrict" required maxlength="100" />
+                <span>ตำบล/แขวง *</span>
+                <input
+                  name="subdistrict"
+                  [(ngModel)]="orderForm.subdistrict"
+                  required
+                  maxlength="100"
+                />
               </label>
               <label>
-                <span>District *</span>
+                <span>อำเภอ/เขต *</span>
                 <input name="district" [(ngModel)]="orderForm.district" required maxlength="100" />
               </label>
               <label>
-                <span>Province *</span>
+                <span>จังหวัด *</span>
                 <input name="province" [(ngModel)]="orderForm.province" required maxlength="100" />
               </label>
               <label>
-                <span>Postal code *</span>
-                <input name="postalCode" [(ngModel)]="orderForm.postalCode" required pattern="[0-9]{5}" maxlength="5" inputmode="numeric" />
+                <span>รหัสไปรษณีย์ *</span>
+                <input
+                  name="postalCode"
+                  [(ngModel)]="orderForm.postalCode"
+                  required
+                  pattern="[0-9]{5}"
+                  maxlength="5"
+                  inputmode="numeric"
+                />
               </label>
             </div>
           </section>
 
           <section class="form-section">
-            <h3>Products</h3>
+            <h3>สินค้า</h3>
             @if (productsLoading()) {
-              <p class="form-hint">Loading products...</p>
+              <p class="form-hint">กำลังโหลดสินค้า...</p>
             } @else {
               <div class="add-order-item">
-                <select aria-label="Select product" [ngModel]="selectedProductId()" (ngModelChange)="selectedProductId.set($event)" name="selectedProduct">
-                  <option value="">Choose an active product</option>
+                <select
+                  aria-label="เลือกสินค้า"
+                  [ngModel]="selectedProductId()"
+                  (ngModelChange)="selectedProductId.set($event)"
+                  name="selectedProduct"
+                >
+                  <option value="">เลือกสินค้าที่เปิดใช้งาน</option>
                   @for (product of products(); track product._id) {
                     <option [value]="product._id">{{ product.name }} · {{ product.sku }}</option>
                   }
                 </select>
-                <button type="button" [disabled]="!selectedProductId()" (click)="addDraftItem()">Add item</button>
+                <button type="button" [disabled]="!selectedProductId()" (click)="addDraftItem()">
+                  เพิ่มสินค้า
+                </button>
               </div>
               @if (products().length === 0) {
-                <p class="form-hint">There are no active products available.</p>
+                <p class="form-hint">ไม่มีสินค้าที่เปิดใช้งาน</p>
               }
             }
             @if (draftItems().length > 0) {
@@ -219,11 +316,24 @@
                         <small>{{ product.sku }} · {{ money(productPriceCents(product)) }}</small>
                       </div>
                       <label>
-                        <span class="visually-hidden">Quantity for {{ product.name }}</span>
-                        <input type="number" min="1" max="10000" [ngModel]="item.quantity" (ngModelChange)="updateDraftQuantity(item.productId, toQuantity($event))" name="quantity-{{ i }}" />
+                        <span class="visually-hidden">จำนวน {{ product.name }}</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10000"
+                          [ngModel]="item.quantity"
+                          (ngModelChange)="updateDraftQuantity(item.productId, toQuantity($event))"
+                          name="quantity-{{ i }}"
+                        />
                       </label>
                       <strong>{{ money(productLineTotalCents(product, item.quantity)) }}</strong>
-                      <button type="button" aria-label="Remove {{ product.name }}" (click)="removeDraftItem(item.productId)">×</button>
+                      <button
+                        type="button"
+                        [attr.aria-label]="'นำ ' + product.name + ' ออกจากรายการ'"
+                        (click)="removeDraftItem(item.productId)"
+                      >
+                        ×
+                      </button>
                     </div>
                   }
                 }
@@ -232,46 +342,92 @@
           </section>
 
           <section class="form-section">
-            <h3>Payment and totals</h3>
+            <h3>การชำระเงินและยอดรวม</h3>
             <div class="order-form-grid">
               <label>
-                <span>Payment method *</span>
+                <span>วิธีชำระเงิน *</span>
                 <select name="paymentMethod" [(ngModel)]="orderForm.paymentMethod">
-                  <option value="bank_transfer">Bank transfer</option>
-                  <option value="cod">Cash on delivery</option>
+                  <option value="bank_transfer">โอนเงิน</option>
+                  <option value="cod">เก็บเงินปลายทาง (COD)</option>
                 </select>
               </label>
               <label>
-                <span>Discount (฿)</span>
-                <input type="number" name="discount" [(ngModel)]="orderForm.discount" min="0" step="0.01" />
+                <span>ส่วนลด (฿)</span>
+                <input
+                  type="number"
+                  name="discount"
+                  [(ngModel)]="orderForm.discount"
+                  min="0"
+                  step="0.01"
+                />
               </label>
               <label>
-                <span>Shipping charged (฿)</span>
-                <input type="number" name="shippingCharge" [(ngModel)]="orderForm.shippingCharge" min="0" step="0.01" />
+                <span>ค่าส่งที่เรียกเก็บจากลูกค้า (฿)</span>
+                <input
+                  type="number"
+                  name="shippingCharge"
+                  [(ngModel)]="orderForm.shippingCharge"
+                  min="0"
+                  step="0.01"
+                />
               </label>
               <label>
-                <span>Actual shipping cost (฿)</span>
-                <input type="number" name="shippingCost" [(ngModel)]="orderForm.shippingCost" min="0" step="0.01" />
+                <span>ต้นทุนค่าจัดส่งจริง (฿)</span>
+                <input
+                  type="number"
+                  name="shippingCost"
+                  [(ngModel)]="orderForm.shippingCost"
+                  min="0"
+                  step="0.01"
+                />
               </label>
               <label>
-                <span>Other expenses (฿)</span>
-                <input type="number" name="otherExpenses" [(ngModel)]="orderForm.otherExpenses" min="0" step="0.01" />
+                <span>ค่าใช้จ่ายอื่น (฿)</span>
+                <input
+                  type="number"
+                  name="otherExpenses"
+                  [(ngModel)]="orderForm.otherExpenses"
+                  min="0"
+                  step="0.01"
+                />
               </label>
               <label class="form-wide">
-                <span>Payment note</span>
-                <textarea name="paymentNote" [(ngModel)]="orderForm.paymentNote" maxlength="1000" rows="2"></textarea>
+                <span>หมายเหตุการชำระเงิน</span>
+                <textarea
+                  name="paymentNote"
+                  [(ngModel)]="orderForm.paymentNote"
+                  maxlength="1000"
+                  rows="2"
+                ></textarea>
               </label>
             </div>
             <div class="order-total-preview">
-              <span>Subtotal <strong>{{ money(draftSubtotalCents()) }}</strong></span>
-              <span>Order total <strong>{{ money(draftTotalCents()) }}</strong></span>
+              <span
+                >ยอดรวมสินค้า <strong>{{ money(draftSubtotalCents()) }}</strong></span
+              >
+              <span
+                >ยอดสุทธิ <strong>{{ money(draftTotalCents()) }}</strong></span
+              >
             </div>
           </section>
         </div>
         <footer class="order-modal-footer">
-          <button type="button" class="secondary-button" [disabled]="saving()" (click)="closeCreateForm()">Cancel</button>
-          <button type="submit" class="orders-primary" [disabled]="createForm.invalid || saving() || draftItems().length === 0 || productsLoading()">
-            {{ saving() ? 'Creating...' : 'Create order' }}
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="saving()"
+            (click)="closeCreateForm()"
+          >
+            ยกเลิก
+          </button>
+          <button
+            type="submit"
+            class="orders-primary"
+            [disabled]="
+              createForm.invalid || saving() || draftItems().length === 0 || productsLoading()
+            "
+          >
+            {{ saving() ? 'กำลังสร้าง...' : 'สร้างออเดอร์' }}
           </button>
         </footer>
       </form>
@@ -281,16 +437,39 @@
 
 @if (selectedOrder(); as order) {
   <div class="order-modal-backdrop">
-    <section class="order-modal order-details-modal" role="dialog" aria-modal="true" aria-labelledby="order-details-title">
+    <section
+      class="order-modal order-details-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="order-details-title"
+    >
       <header class="order-modal-header">
         <div>
-          <span class="orders-eyebrow">ORDER DETAILS</span>
+          <span class="orders-eyebrow">รายละเอียดออเดอร์</span>
           <h2 id="order-details-title">{{ order.orderNumber }}</h2>
-          <p>Created {{ order.createdAt | date:'medium' }} by {{ order.createdByName }}</p>
+          <p>
+            สร้างเมื่อ {{ formatDate(order.createdAt, 'medium', 'medium') }} โดย
+            {{ order.createdByName }}
+          </p>
         </div>
         <div class="order-detail-actions">
-          <button type="button" class="orders-secondary-action" [disabled]="printSettingsLoading()" (click)="printOrderLabel(order)">Print / Export PDF</button>
-          <button type="button" class="modal-close" aria-label="Close" [disabled]="updating()" (click)="closeOrderDetails()">×</button>
+          <button
+            type="button"
+            class="orders-secondary-action"
+            [disabled]="printSettingsLoading()"
+            (click)="printOrderLabel(order)"
+          >
+            พิมพ์ / ส่งออก PDF
+          </button>
+          <button
+            type="button"
+            class="modal-close"
+            aria-label="ปิด"
+            [disabled]="updating()"
+            (click)="closeOrderDetails()"
+          >
+            ×
+          </button>
         </div>
       </header>
       <form #detailsFormElement="ngForm" (ngSubmit)="saveOrderDetails()">
@@ -300,161 +479,333 @@
           }
           <section class="details-customer">
             <h3>{{ order.customer.name }}</h3>
-            <p>{{ order.customer.phone }}@if (order.customer.facebookName) { · {{ order.customer.facebookName }} }</p>
+            <p>
+              {{ order.customer.phone }}
+              @if (order.customer.facebookName) {
+                · {{ order.customer.facebookName }}
+              }
+            </p>
             <div class="order-form-grid details-address-grid">
               <label class="form-wide">
-                <span>Address</span>
-                <input name="customerAddressLine" [(ngModel)]="detailsForm.addressLine" required maxlength="500" />
+                <span>ที่อยู่</span>
+                <input
+                  name="customerAddressLine"
+                  [(ngModel)]="detailsForm.addressLine"
+                  required
+                  maxlength="500"
+                />
               </label>
               <label>
-                <span>Subdistrict</span>
-                <input name="customerSubdistrict" [(ngModel)]="detailsForm.subdistrict" required maxlength="100" />
+                <span>ตำบล/แขวง</span>
+                <input
+                  name="customerSubdistrict"
+                  [(ngModel)]="detailsForm.subdistrict"
+                  required
+                  maxlength="100"
+                />
               </label>
               <label>
-                <span>District</span>
-                <input name="customerDistrict" [(ngModel)]="detailsForm.district" required maxlength="100" />
+                <span>อำเภอ/เขต</span>
+                <input
+                  name="customerDistrict"
+                  [(ngModel)]="detailsForm.district"
+                  required
+                  maxlength="100"
+                />
               </label>
               <label>
-                <span>Province</span>
-                <input name="customerProvince" [(ngModel)]="detailsForm.province" required maxlength="100" />
+                <span>จังหวัด</span>
+                <input
+                  name="customerProvince"
+                  [(ngModel)]="detailsForm.province"
+                  required
+                  maxlength="100"
+                />
               </label>
               <label>
-                <span>Postal code</span>
-                <input name="customerPostalCode" [(ngModel)]="detailsForm.postalCode" required pattern="[0-9]{5}" maxlength="5" inputmode="numeric" />
+                <span>รหัสไปรษณีย์</span>
+                <input
+                  name="customerPostalCode"
+                  [(ngModel)]="detailsForm.postalCode"
+                  required
+                  pattern="[0-9]{5}"
+                  maxlength="5"
+                  inputmode="numeric"
+                />
               </label>
             </div>
           </section>
           <section class="details-items">
-            <h3>Items</h3>
+            <h3>รายการสินค้า</h3>
             <div class="add-order-item details-add-item">
-              <select aria-label="Add product to order" [ngModel]="selectedProductId()" (ngModelChange)="selectedProductId.set($event)" name="detailsSelectedProduct">
-                <option value="">Add an active product</option>
+              <select
+                aria-label="เพิ่มสินค้าในออเดอร์"
+                [ngModel]="selectedProductId()"
+                (ngModelChange)="selectedProductId.set($event)"
+                name="detailsSelectedProduct"
+              >
+                <option value="">เลือกสินค้าที่เปิดใช้งาน</option>
                 @for (product of products(); track product._id) {
                   <option [value]="product._id">{{ product.name }} · {{ product.sku }}</option>
                 }
               </select>
-              <button type="button" [disabled]="!selectedProductId()" (click)="addDetailItem()">Add item</button>
+              <button type="button" [disabled]="!selectedProductId()" (click)="addDetailItem()">
+                เพิ่มสินค้า
+              </button>
             </div>
             @for (item of detailItems(); track item.productId; let i = $index) {
               <div class="details-item">
-                <span><strong>{{ detailItemName(item.productId) }}</strong><small>{{ detailItemSku(item.productId) }} · {{ item.quantity }} × {{ money(detailItemUnitPriceCents(item.productId)) }}</small></span>
-                <input class="details-quantity" type="number" min="1" max="10000" [ngModel]="item.quantity" (ngModelChange)="updateDetailQuantity(item.productId, toQuantity($event))" [name]="'detailQuantity' + i" aria-label="Product quantity" />
-                <strong>{{ money(detailItemUnitPriceCents(item.productId) * item.quantity) }}</strong>
-                <button class="remove-detail-item" type="button" [disabled]="detailItems().length <= 1" [attr.aria-label]="'Remove ' + detailItemName(item.productId)" (click)="removeDetailItem(item.productId)">×</button>
+                <span
+                  ><strong>{{ detailItemName(item.productId) }}</strong
+                  ><small
+                    >{{ detailItemSku(item.productId) }} · {{ item.quantity }} ×
+                    {{ money(detailItemUnitPriceCents(item.productId)) }}</small
+                  ></span
+                >
+                <input
+                  class="details-quantity"
+                  type="number"
+                  min="1"
+                  max="10000"
+                  [ngModel]="item.quantity"
+                  (ngModelChange)="updateDetailQuantity(item.productId, toQuantity($event))"
+                  [name]="'detailQuantity' + i"
+                  aria-label="จำนวนสินค้า"
+                />
+                <strong>{{
+                  money(detailItemUnitPriceCents(item.productId) * item.quantity)
+                }}</strong>
+                <button
+                  class="remove-detail-item"
+                  type="button"
+                  [disabled]="detailItems().length <= 1"
+                  [attr.aria-label]="'นำ ' + detailItemName(item.productId) + ' ออกจากรายการ'"
+                  (click)="removeDetailItem(item.productId)"
+                >
+                  ×
+                </button>
               </div>
             }
             <div class="details-totals">
-              <span>Subtotal <strong>{{ money(detailsSubtotalCents()) }}</strong></span>
-              <span>Discount <strong>−{{ money(toCents(detailsForm.discount)) }}</strong></span>
-              <span>Shipping charged <strong>{{ money(toCents(detailsForm.shippingCharge)) }}</strong></span>
-              <span class="grand-total">Total <strong>{{ money(detailsTotalCents()) }}</strong></span>
-              <span>Product cost <strong>{{ money(order.productCostCents) }}</strong></span>
-              <span>Gross profit <strong>{{ money(order.grossProfitCents) }}</strong></span>
-              <span>Commission <strong>{{ money(order.commissionCents) }}</strong></span>
-              <span>Shipping cost <strong>{{ money(toCents(detailsForm.shippingCost)) }}</strong></span>
-              <span>Net profit <strong>{{ money(order.netProfitCents) }}</strong></span>
+              <span
+                >ยอดรวมสินค้า <strong>{{ money(detailsSubtotalCents()) }}</strong></span
+              >
+              <span
+                >ส่วนลด <strong>−{{ money(toCents(detailsForm.discount)) }}</strong></span
+              >
+              <span
+                >ค่าส่งที่เรียกเก็บ
+                <strong>{{ money(toCents(detailsForm.shippingCharge)) }}</strong></span
+              >
+              <span class="grand-total"
+                >ยอดสุทธิ <strong>{{ money(detailsTotalCents()) }}</strong></span
+              >
+              <span
+                >ต้นทุนสินค้า <strong>{{ money(order.productCostCents) }}</strong></span
+              >
+              <span
+                >กำไรขั้นต้น <strong>{{ money(order.grossProfitCents) }}</strong></span
+              >
+              <span
+                >ค่าคอมมิชชัน <strong>{{ money(order.commissionCents) }}</strong></span
+              >
+              <span
+                >ต้นทุนค่าจัดส่ง
+                <strong>{{ money(toCents(detailsForm.shippingCost)) }}</strong></span
+              >
+              <span
+                >กำไรสุทธิ <strong>{{ money(order.netProfitCents) }}</strong></span
+              >
             </div>
-            <p class="form-hint">Profit and commission are recalculated by the server when you save.</p>
+            <p class="form-hint">ระบบจะคำนวณกำไรและค่าคอมมิชชันใหม่เมื่อบันทึก</p>
           </section>
           <section class="form-section">
-            <h3>Order, payment and shipping</h3>
+            <h3>ออเดอร์ การชำระเงิน และการจัดส่ง</h3>
             <div class="order-form-grid">
               <label>
-                <span>Payment method</span>
+                <span>วิธีชำระเงิน</span>
                 <select name="detailsPaymentMethod" [(ngModel)]="detailsForm.paymentMethod">
-                  <option value="bank_transfer">Bank transfer</option>
-                  <option value="cod">Cash on delivery</option>
+                  <option value="bank_transfer">โอนเงิน</option>
+                  <option value="cod">เก็บเงินปลายทาง (COD)</option>
                 </select>
               </label>
               <label>
-                <span>Order status</span>
+                <span>สถานะออเดอร์</span>
                 <select name="detailsOrderStatus" [(ngModel)]="detailsForm.orderStatus">
-                  @for (status of orderStatusOptions; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }
+                  @for (status of orderStatusOptions; track status) {
+                    <option [value]="status">{{ statusLabel(status) }}</option>
+                  }
                 </select>
               </label>
               <label>
-                <span>Payment status</span>
-                <select name="detailsPaymentStatus" [ngModel]="detailsForm.paymentStatus" (ngModelChange)="changePaymentStatus($event)">
-                  @for (status of paymentStatusOptions; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }
+                <span>สถานะการชำระเงิน</span>
+                <select
+                  name="detailsPaymentStatus"
+                  [ngModel]="detailsForm.paymentStatus"
+                  (ngModelChange)="changePaymentStatus($event)"
+                >
+                  @for (status of paymentStatusOptions; track status) {
+                    <option [value]="status">{{ statusLabel(status) }}</option>
+                  }
                 </select>
               </label>
               <label>
-                <span>Discount (฿)</span>
-                <input type="number" name="detailsDiscount" [(ngModel)]="detailsForm.discount" (ngModelChange)="onDetailMoneyChange()" min="0" step="0.01" />
+                <span>ส่วนลด (฿)</span>
+                <input
+                  type="number"
+                  name="detailsDiscount"
+                  [(ngModel)]="detailsForm.discount"
+                  (ngModelChange)="onDetailMoneyChange()"
+                  min="0"
+                  step="0.01"
+                />
               </label>
               <label>
-                <span>Shipping charged (฿)</span>
-                <input type="number" name="detailsShippingCharge" [(ngModel)]="detailsForm.shippingCharge" (ngModelChange)="onDetailMoneyChange()" min="0" step="0.01" />
+                <span>ค่าส่งที่เรียกเก็บจากลูกค้า (฿)</span>
+                <input
+                  type="number"
+                  name="detailsShippingCharge"
+                  [(ngModel)]="detailsForm.shippingCharge"
+                  (ngModelChange)="onDetailMoneyChange()"
+                  min="0"
+                  step="0.01"
+                />
               </label>
               <label>
-                <span>Actual shipping cost (฿)</span>
-                <input type="number" name="detailsShippingCost" [(ngModel)]="detailsForm.shippingCost" min="0" step="0.01" />
+                <span>ต้นทุนค่าจัดส่งจริง (฿)</span>
+                <input
+                  type="number"
+                  name="detailsShippingCost"
+                  [(ngModel)]="detailsForm.shippingCost"
+                  min="0"
+                  step="0.01"
+                />
               </label>
               <label>
-                <span>Other expenses (฿)</span>
-                <input type="number" name="detailsOtherExpenses" [(ngModel)]="detailsForm.otherExpenses" min="0" step="0.01" />
+                <span>ค่าใช้จ่ายอื่น (฿)</span>
+                <input
+                  type="number"
+                  name="detailsOtherExpenses"
+                  [(ngModel)]="detailsForm.otherExpenses"
+                  min="0"
+                  step="0.01"
+                />
               </label>
               <label>
-                <span>Amount paid (฿)</span>
-                <input type="number" name="amountPaid" [(ngModel)]="detailsForm.amountPaid" min="0" step="0.01" />
+                <span>ยอดที่ชำระแล้ว (฿)</span>
+                <input
+                  type="number"
+                  name="amountPaid"
+                  [(ngModel)]="detailsForm.amountPaid"
+                  min="0"
+                  step="0.01"
+                />
               </label>
               <label>
-                <span>Payment note</span>
-                <input name="detailsPaymentNote" [(ngModel)]="detailsForm.paymentNote" maxlength="1000" />
+                <span>หมายเหตุการชำระเงิน</span>
+                <input
+                  name="detailsPaymentNote"
+                  [(ngModel)]="detailsForm.paymentNote"
+                  maxlength="1000"
+                />
               </label>
               <label>
-                <span>Shipping status</span>
+                <span>สถานะการจัดส่ง</span>
                 <select name="shippingStatus" [(ngModel)]="detailsForm.shippingStatus">
-                  @for (status of shippingStatusOptions; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }
+                  @for (status of shippingStatusOptions; track status) {
+                    <option [value]="status">{{ statusLabel(status) }}</option>
+                  }
                 </select>
               </label>
               <label>
-                <span>Shipping company</span>
-                <input name="shippingCompany" [(ngModel)]="detailsForm.shippingCompany" maxlength="100" />
+                <span>บริษัทขนส่ง</span>
+                <input
+                  name="shippingCompany"
+                  [(ngModel)]="detailsForm.shippingCompany"
+                  maxlength="100"
+                />
               </label>
               <label>
-                <span>Tracking number</span>
-                <input name="trackingNumber" [(ngModel)]="detailsForm.trackingNumber" maxlength="100" />
+                <span>เลขพัสดุ</span>
+                <input
+                  name="trackingNumber"
+                  [(ngModel)]="detailsForm.trackingNumber"
+                  maxlength="100"
+                />
               </label>
               <label>
-                <span>Commission</span>
+                <span>สถานะค่าคอมมิชชัน</span>
                 <select name="commissionStatus" [(ngModel)]="detailsForm.commissionStatus">
-                  @for (status of commissionStatusOptions; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }
+                  @for (status of commissionStatusOptions; track status) {
+                    <option [value]="status">{{ statusLabel(status) }}</option>
+                  }
                 </select>
               </label>
             </div>
           </section>
           <section class="form-section payment-slip-section">
-            <h3>Payment slip</h3>
+            <h3>สลิปการชำระเงิน</h3>
             @if (paymentSlipUrl()) {
-              <a class="payment-slip-preview-link" [href]="paymentSlipUrl()" target="_blank" rel="noopener">
-                <img class="payment-slip-preview" [src]="paymentSlipUrl()" alt="Uploaded payment slip" />
+              <a
+                class="payment-slip-preview-link"
+                [href]="paymentSlipUrl()"
+                target="_blank"
+                rel="noopener"
+              >
+                <img
+                  class="payment-slip-preview"
+                  [src]="paymentSlipUrl()"
+                  alt="สลิปการชำระเงินที่อัปโหลด"
+                />
               </a>
             } @else if (paymentSlipLoading()) {
-              <p class="form-hint">Loading payment slip...</p>
+              <p class="form-hint">กำลังโหลดสลิป...</p>
             } @else if (order.paymentSlip) {
-              <p class="form-hint">The saved slip could not be displayed.</p>
+              <p class="form-hint">ไม่สามารถแสดงสลิปที่บันทึกไว้ได้</p>
             } @else {
-              <p class="form-hint">No payment slip uploaded.</p>
+              <p class="form-hint">ยังไม่มีการอัปโหลดสลิป</p>
             }
             <label class="payment-slip-upload">
-              <span>Upload or replace slip (JPEG, PNG, WebP; up to 5 MB)</span>
-              <input #slipFileInput type="file" accept="image/jpeg,image/png,image/webp" (change)="onPaymentSlipSelected($event)" />
+              <span>อัปโหลดหรือเปลี่ยนสลิป (JPEG, PNG หรือ WebP ขนาดไม่เกิน 5 MB)</span>
+              <input
+                #slipFileInput
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                (change)="onPaymentSlipSelected($event)"
+              />
             </label>
             @if (selectedSlipFile(); as slipFile) {
-              <p class="form-hint">Selected: {{ slipFile.name }}</p>
+              <p class="form-hint">ไฟล์ที่เลือก: {{ slipFile.name }}</p>
             }
             @if (paymentSlipError()) {
               <p class="payment-slip-error" role="alert">{{ paymentSlipError() }}</p>
             }
-            <button type="button" class="orders-secondary-action payment-slip-submit" [disabled]="!selectedSlipFile() || paymentSlipLoading()" (click)="uploadPaymentSlip()">
-              {{ paymentSlipLoading() && selectedSlipFile() ? 'Uploading...' : 'Upload slip' }}
+            <button
+              type="button"
+              class="orders-secondary-action payment-slip-submit"
+              [disabled]="!selectedSlipFile() || paymentSlipLoading()"
+              (click)="uploadPaymentSlip()"
+            >
+              {{ paymentSlipLoading() && selectedSlipFile() ? 'กำลังอัปโหลด...' : 'อัปโหลดสลิป' }}
             </button>
           </section>
         </div>
         <footer class="order-modal-footer">
-          <button type="button" class="secondary-button" [disabled]="updating()" (click)="closeOrderDetails()">Close</button>
-          <button type="submit" class="orders-primary" [disabled]="updating() || detailsFormElement.invalid || detailItems().length === 0">{{ updating() ? 'Saving...' : 'Save updates' }}</button>
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="updating()"
+            (click)="closeOrderDetails()"
+          >
+            ปิด
+          </button>
+          <button
+            type="submit"
+            class="orders-primary"
+            [disabled]="updating() || detailsFormElement.invalid || detailItems().length === 0"
+          >
+            {{ updating() ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข' }}
+          </button>
         </footer>
       </form>
     </section>

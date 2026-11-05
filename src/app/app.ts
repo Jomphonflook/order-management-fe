@@ -9,6 +9,7 @@ import { OrderManagementComponent } from './order-management.component';
 import { SettingsManagementComponent } from './settings-management.component';
 import { TeamManagementComponent } from './team-management.component';
 import { DashboardComponent } from './dashboard.component';
+import { thaiErrorMessage } from './error-message';
 
 type WorkspaceTab = 'dashboard' | 'orders' | 'products' | 'settings' | 'users';
 type ProductStatusFilter = 'all' | 'active' | 'inactive';
@@ -88,7 +89,7 @@ export class App implements OnInit {
         this.auth.setUser(null);
         if (error.status !== 401) {
           this.errorMessage.set(
-            'Could not connect to the server. Please make sure the API is running and try again.',
+            'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบ API แล้วลองอีกครั้ง',
           );
         }
         this.checkingSession.set(false);
@@ -112,9 +113,9 @@ export class App implements OnInit {
       error: (error: HttpErrorResponse) => {
         this.errorMessage.set(
           error.status === 401
-            ? 'The email or password is incorrect. Please try again.'
+            ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง'
             : error.status === 0
-              ? 'Could not connect to the server. Check your connection and try again.'
+              ? 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง'
               : this.errorMessageFrom(error),
         );
         this.submitting.set(false);
@@ -140,7 +141,7 @@ export class App implements OnInit {
       error: (error: HttpErrorResponse) => {
         this.errorMessage.set(
           error.status === 0
-            ? 'Could not reach the server to log out. Please try again.'
+            ? 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อออกจากระบบได้ กรุณาลองอีกครั้ง'
             : this.errorMessageFrom(error),
         );
         this.loggingOut.set(false);
@@ -149,10 +150,7 @@ export class App implements OnInit {
   }
 
   protected selectTab(tab: WorkspaceTab): void {
-    if (
-      (tab === 'settings' || tab === 'users') &&
-      this.user()?.role !== 'owner'
-    ) return;
+    if ((tab === 'settings' || tab === 'users') && this.user()?.role !== 'owner') return;
     this.activeTab.set(tab);
     if (tab === 'products' && this.user()) {
       this.loadProducts();
@@ -240,9 +238,9 @@ export class App implements OnInit {
     const allowed = selected.slice(0, availableSlots);
 
     if (allowed.some((file) => file.size > 5 * 1024 * 1024)) {
-      this.errorMessage.set('Each product image must be 5 MB or smaller.');
+      this.errorMessage.set('รูปสินค้าแต่ละรูปต้องมีขนาดไม่เกิน 5 MB');
     } else if (selected.length > availableSlots) {
-      this.errorMessage.set('A product can have up to 8 images.');
+      this.errorMessage.set('สินค้าแต่ละรายการเพิ่มรูปได้สูงสุด 8 รูป');
     } else {
       this.errorMessage.set('');
     }
@@ -284,7 +282,7 @@ export class App implements OnInit {
       : this.productService.create(formData);
     request.subscribe({
       next: () => {
-        this.productNotice.set(product ? 'Product updated.' : 'Product created.');
+        this.productNotice.set(product ? 'แก้ไขสินค้าเรียบร้อยแล้ว' : 'เพิ่มสินค้าเรียบร้อยแล้ว');
         this.showProductEditor.set(false);
         this.editingProduct.set(null);
         this.productFiles.set([]);
@@ -307,7 +305,7 @@ export class App implements OnInit {
     this.errorMessage.set('');
     this.productService.update(product._id, formData).subscribe({
       next: () => {
-        this.productNotice.set(product.isActive ? 'Product deactivated.' : 'Product activated.');
+        this.productNotice.set(product.isActive ? 'ปิดใช้งานสินค้าแล้ว' : 'เปิดใช้งานสินค้าแล้ว');
         this.changingProductId.set('');
         this.loadProducts();
       },
@@ -369,13 +367,10 @@ export class App implements OnInit {
   }
 
   protected get roleLabel(): string {
-    return this.user()?.role === 'owner' ? 'Owner' : 'Admin';
+    return this.user()?.role === 'owner' ? 'เจ้าของร้าน' : 'ผู้ดูแล';
   }
 
   private errorMessageFrom(error: HttpErrorResponse): string {
-    const message = error.error?.message;
-    if (Array.isArray(message)) return message.join(' ');
-    if (typeof message === 'string') return message;
-    return 'Something went wrong. Please try again.';
+    return thaiErrorMessage(error, 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง');
   }
 }

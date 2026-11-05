@@ -3,6 +3,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DashboardData, OrderService } from './order.service';
+import { thaiErrorMessage } from './error-message';
+import { formatThaiDate } from './thai-date';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,9 +12,9 @@ import { DashboardData, OrderService } from './order.service';
   template: `
     <section class="dashboard-heading">
       <div>
-        <span class="dashboard-eyebrow">STORE PERFORMANCE</span>
-        <h1>Dashboard<span>.</span></h1>
-        <p>Sales, receipts, payouts, and order performance.</p>
+        <span class="dashboard-eyebrow">ภาพรวมร้านค้า</span>
+        <h1>แดชบอร์ด<span>.</span></h1>
+        <p>สรุปยอดขาย ยอดรับ ยอดจ่าย และผลการดำเนินงาน</p>
       </div>
     </section>
 
@@ -22,119 +24,150 @@ import { DashboardData, OrderService } from './order.service';
 
     <form class="dashboard-filters" (ngSubmit)="applyFilters()">
       <label class="dashboard-search">
-        <span>Search orders, customers, or Admin</span>
-        <input name="search" type="search" [(ngModel)]="search" placeholder="Order number, customer, phone, Admin" />
+        <span>ค้นหาออเดอร์ ลูกค้า หรือผู้ดูแล</span>
+        <input
+          name="search"
+          type="search"
+          [(ngModel)]="search"
+          placeholder="เลขออเดอร์ ชื่อลูกค้า เบอร์โทร หรือผู้ดูแล"
+        />
       </label>
       <label>
-        <span>From</span>
+        <span>ตั้งแต่วันที่</span>
         <input name="from" type="date" [(ngModel)]="from" required />
       </label>
       <label>
-        <span>To</span>
+        <span>ถึงวันที่</span>
         <input name="to" type="date" [(ngModel)]="to" required />
       </label>
       <label>
-        <span>Order status</span>
+        <span>สถานะออเดอร์</span>
         <select name="orderStatus" [(ngModel)]="orderStatus">
-          <option value="">All statuses</option>
+          <option value="">ทุกสถานะ</option>
           @for (status of orderStatusOptions; track status) {
-            <option [value]="status">{{ status.replace('_', ' ') }}</option>
+            <option [value]="status">{{ statusLabel(status) }}</option>
           }
         </select>
       </label>
       <label>
-        <span>Payment status</span>
+        <span>สถานะการชำระเงิน</span>
         <select name="paymentStatus" [(ngModel)]="paymentStatus">
-          <option value="">All payments</option>
+          <option value="">ทุกสถานะการชำระเงิน</option>
           @for (status of paymentStatusOptions; track status) {
-            <option [value]="status">{{ status.replace('_', ' ') }}</option>
+            <option [value]="status">{{ statusLabel(status) }}</option>
           }
         </select>
       </label>
       <label>
-        <span>Sort orders by</span>
+        <span>เรียงออเดอร์ตาม</span>
         <select name="sortBy" [(ngModel)]="sortBy">
-          <option value="createdAt">Created date</option>
-          <option value="orderNumber">Order number</option>
-          <option value="customer.name">Customer</option>
-          <option value="totalCents">Sales total</option>
+          <option value="createdAt">วันที่สร้าง</option>
+          <option value="orderNumber">เลขออเดอร์</option>
+          <option value="customer.name">ชื่อลูกค้า</option>
+          <option value="totalCents">ยอดขาย</option>
         </select>
       </label>
       <label>
-        <span>Order direction</span>
+        <span>ลำดับการเรียง</span>
         <select name="sortOrder" [(ngModel)]="sortOrder">
-          <option value="desc">Descending</option>
-          <option value="asc">Ascending</option>
+          <option value="desc">จากมากไปน้อย</option>
+          <option value="asc">จากน้อยไปมาก</option>
         </select>
       </label>
       <label>
-        <span>Sales chart</span>
+        <span>กราฟยอดขาย</span>
         <select name="chartInterval" [(ngModel)]="interval">
-          <option value="day">Daily</option>
-          <option value="month">Monthly</option>
-          <option value="year">Yearly</option>
+          <option value="day">รายวัน</option>
+          <option value="month">รายเดือน</option>
+          <option value="year">รายปี</option>
         </select>
       </label>
-      <button class="dashboard-primary" type="submit" [disabled]="loading()">Search</button>
+      <button class="dashboard-primary" type="submit" [disabled]="loading()">ค้นหา</button>
     </form>
 
     @if (loading()) {
-      <div class="dashboard-loading">Loading dashboard...</div>
+      <div class="dashboard-loading">กำลังโหลดแดชบอร์ด...</div>
     } @else if (data(); as report) {
-      <section class="dashboard-metrics" aria-label="Financial summary">
+      <section class="dashboard-metrics" aria-label="สรุปข้อมูลทางการเงิน">
         <article class="dashboard-metric">
-          <span>Sales</span>
+          <span>ยอดขาย</span>
           <strong>{{ money(report.summary.salesCents) }}</strong>
-          <small>COD at order creation; transfers when paid</small>
+          <small>COD นับเมื่อสร้างออเดอร์; โอนเงินนับเมื่อชำระแล้ว</small>
         </article>
         <article class="dashboard-metric received">
-          <span>Received</span>
+          <span>ยอดรับ</span>
           <strong>{{ money(report.summary.receivedCents) }}</strong>
-          <small>Actual amount recorded as received</small>
+          <small>ยอดเงินจริงที่บันทึกว่ารับแล้ว</small>
         </article>
         <article class="dashboard-metric paid">
-          <span>Paid commission</span>
+          <span>ค่าคอมมิชชันที่จ่ายแล้ว</span>
           <strong>{{ money(report.summary.paidCommissionCents) }}</strong>
-          <small>Commission marked as paid</small>
+          <small>ค่าคอมมิชชันที่ระบุว่าจ่ายแล้ว</small>
         </article>
         <article class="dashboard-metric">
-          <span>Gross profit</span>
+          <span>กำไรขั้นต้น</span>
           <strong>{{ money(report.summary.grossProfitCents) }}</strong>
-          <small>Sales minus product cost</small>
+          <small>ยอดขายหักต้นทุนสินค้า</small>
         </article>
         <article class="dashboard-metric">
-          <span>Net profit</span>
+          <span>กำไรสุทธิ</span>
           <strong>{{ money(report.summary.netProfitCents) }}</strong>
-          <small>After commission and expenses</small>
+          <small>หลังหักค่าคอมมิชชันและค่าใช้จ่าย</small>
         </article>
       </section>
 
-      <section class="dashboard-counts" aria-label="Order counts">
-        <div><span>Orders</span><strong>{{ report.summary.totalOrders }}</strong></div>
-        <div><span>Pending</span><strong>{{ report.summary.pendingOrders }}</strong></div>
-        <div><span>Awaiting payment</span><strong>{{ report.summary.unpaidOrders }}</strong></div>
-        <div><span>Completed</span><strong>{{ report.summary.completedOrders }}</strong></div>
-        <div><span>Cancelled</span><strong>{{ report.summary.cancelledOrders }}</strong></div>
-        <div><span>Returned</span><strong>{{ report.summary.returnedOrders }}</strong></div>
+      <section class="dashboard-counts" aria-label="จำนวนออเดอร์">
+        <div>
+          <span>ออเดอร์ทั้งหมด</span><strong>{{ report.summary.totalOrders }}</strong>
+        </div>
+        <div>
+          <span>รอดำเนินการ</span><strong>{{ report.summary.pendingOrders }}</strong>
+        </div>
+        <div>
+          <span>รอชำระเงิน</span><strong>{{ report.summary.unpaidOrders }}</strong>
+        </div>
+        <div>
+          <span>สำเร็จ</span><strong>{{ report.summary.completedOrders }}</strong>
+        </div>
+        <div>
+          <span>ยกเลิก</span><strong>{{ report.summary.cancelledOrders }}</strong>
+        </div>
+        <div>
+          <span>คืนสินค้า</span><strong>{{ report.summary.returnedOrders }}</strong>
+        </div>
       </section>
 
       <section class="dashboard-costs">
-        <div><span>Product cost</span><strong>{{ money(report.summary.productCostCents) }}</strong></div>
-        <div><span>Shipping cost</span><strong>{{ money(report.summary.shippingCostCents) }}</strong></div>
-        <div><span>Other expenses</span><strong>{{ money(report.summary.otherExpensesCents) }}</strong></div>
+        <div>
+          <span>ต้นทุนสินค้า</span><strong>{{ money(report.summary.productCostCents) }}</strong>
+        </div>
+        <div>
+          <span>ต้นทุนค่าจัดส่ง</span><strong>{{ money(report.summary.shippingCostCents) }}</strong>
+        </div>
+        <div>
+          <span>ค่าใช้จ่ายอื่น</span><strong>{{ money(report.summary.otherExpensesCents) }}</strong>
+        </div>
       </section>
 
       <div class="dashboard-report-grid">
         <section class="dashboard-card">
-          <header><h2>Sales {{ intervalLabel }}</h2><span>{{ report.range.from }} – {{ report.range.to }}</span></header>
+          <header>
+            <h2>ยอดขาย{{ intervalLabel }}</h2>
+            <span>{{ report.range.from }} – {{ report.range.to }}</span>
+          </header>
           @if (report.dailySales.length === 0) {
-            <p class="dashboard-empty">No sales in this date range.</p>
+            <p class="dashboard-empty">ไม่มีรายการขายในช่วงวันที่นี้</p>
           } @else {
-            <div class="sales-chart" role="img" aria-label="Daily sales chart">
+            <div class="sales-chart" role="img" aria-label="กราฟยอดขาย">
               @for (day of report.dailySales; track day.date) {
                 <div class="sales-bar-column" [title]="day.date + ': ' + money(day.salesCents)">
                   <span class="sales-bar-value">{{ shortMoney(day.salesCents) }}</span>
-                  <div class="sales-bar-track"><span class="sales-bar" [style.height.%]="barHeight(day.salesCents, report.dailySales)"></span></div>
+                  <div class="sales-bar-track">
+                    <span
+                      class="sales-bar"
+                      [style.height.%]="barHeight(day.salesCents, report.dailySales)"
+                    ></span>
+                  </div>
                   <span class="sales-bar-date">{{ trendLabel(day.date) }}</span>
                 </div>
               }
@@ -143,14 +176,20 @@ import { DashboardData, OrderService } from './order.service';
         </section>
 
         <section class="dashboard-card">
-          <header><h2>Top products</h2><span>By units sold</span></header>
+          <header>
+            <h2>สินค้าขายดี</h2>
+            <span>เรียงตามจำนวนที่ขาย</span>
+          </header>
           @if (report.topProducts.length === 0) {
-            <p class="dashboard-empty">No product sales in this date range.</p>
+            <p class="dashboard-empty">ไม่มีรายการขายสินค้าในช่วงวันที่นี้</p>
           } @else {
             <div class="dashboard-list">
               @for (product of report.topProducts; track product.productId) {
                 <div class="dashboard-list-row">
-                  <span><strong>{{ product.name }}</strong><small>{{ product.sku }} · {{ product.quantity }} sold</small></span>
+                  <span
+                    ><strong>{{ product.name }}</strong
+                    ><small>{{ product.sku }} · ขายแล้ว {{ product.quantity }} ชิ้น</small></span
+                  >
                   <strong>{{ money(product.salesCents) }}</strong>
                 </div>
               }
@@ -159,13 +198,24 @@ import { DashboardData, OrderService } from './order.service';
         </section>
 
         <section class="dashboard-card dashboard-wide">
-          <header><h2>Sales and commission by Admin</h2><span>Eligible orders only</span></header>
+          <header>
+            <h2>ยอดขายและค่าคอมมิชชันแยกตามผู้ดูแล</h2>
+            <span>เฉพาะออเดอร์ที่เข้าเงื่อนไข</span>
+          </header>
           @if (report.salesByAdmin.length === 0) {
-            <p class="dashboard-empty">No Admin sales in this date range.</p>
+            <p class="dashboard-empty">ไม่มีรายการขายของผู้ดูแลในช่วงวันที่นี้</p>
           } @else {
             <div class="dashboard-table-wrap">
               <table class="dashboard-table">
-                <thead><tr><th>Admin</th><th>Orders</th><th>Sales</th><th>Commission</th><th>Commission paid</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>ผู้ดูแล</th>
+                    <th>ออเดอร์</th>
+                    <th>ยอดขาย</th>
+                    <th>ค่าคอมมิชชัน</th>
+                    <th>จ่ายค่าคอมมิชชันแล้ว</th>
+                  </tr>
+                </thead>
                 <tbody>
                   @for (admin of report.salesByAdmin; track admin.adminId) {
                     <tr>
@@ -183,21 +233,39 @@ import { DashboardData, OrderService } from './order.service';
         </section>
 
         <section class="dashboard-card dashboard-wide">
-          <header><h2>Recent orders</h2><span>{{ report.summary.totalOrders }} matching orders</span></header>
+          <header>
+            <h2>ออเดอร์ล่าสุด</h2>
+            <span>ตรงตามตัวกรอง {{ report.summary.totalOrders }} รายการ</span>
+          </header>
           @if (report.recentOrders.length === 0) {
-            <p class="dashboard-empty">No orders match the selected filters.</p>
+            <p class="dashboard-empty">ไม่พบออเดอร์ที่ตรงกับตัวกรอง</p>
           } @else {
             <div class="dashboard-table-wrap">
               <table class="dashboard-table">
-                <thead><tr><th>Order</th><th>Customer</th><th>Admin</th><th>Status</th><th>Payment</th><th>Sales</th><th>Received</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>ออเดอร์</th>
+                    <th>ลูกค้า</th>
+                    <th>ผู้ดูแล</th>
+                    <th>สถานะ</th>
+                    <th>การชำระเงิน</th>
+                    <th>ยอดขาย</th>
+                    <th>ยอดรับ</th>
+                  </tr>
+                </thead>
                 <tbody>
                   @for (order of report.recentOrders; track order._id) {
                     <tr>
-                      <td>{{ order.orderNumber }}<small>{{ order.createdAt | date:'short' }}</small></td>
+                      <td>
+                        {{ order.orderNumber }}<small>{{ formatDate(order.createdAt) }}</small>
+                      </td>
                       <td>{{ order.customer.name }}</td>
                       <td>{{ order.createdByName }}</td>
-                      <td>{{ order.orderStatus }}</td>
-                      <td>{{ order.paymentMethod === 'cod' ? 'COD' : 'Transfer' }} · {{ order.paymentStatus }}</td>
+                      <td>{{ statusLabel(order.orderStatus) }}</td>
+                      <td>
+                        {{ order.paymentMethod === 'cod' ? 'เก็บเงินปลายทาง' : 'โอนเงิน' }} ·
+                        {{ statusLabel(order.paymentStatus) }}
+                      </td>
                       <td>{{ isSalesEligible(order) ? money(order.totalCents) : '—' }}</td>
                       <td>{{ money(order.amountPaidCents) }}</td>
                     </tr>
@@ -206,10 +274,22 @@ import { DashboardData, OrderService } from './order.service';
               </table>
             </div>
             <footer class="dashboard-pagination">
-              <span>Page {{ report.pages === 0 ? 0 : report.page }} of {{ report.pages }}</span>
+              <span>หน้า {{ report.pages === 0 ? 0 : report.page }} จาก {{ report.pages }}</span>
               <div>
-                <button type="button" [disabled]="loading() || report.page <= 1" (click)="changePage(report.page - 1)">Previous</button>
-                <button type="button" [disabled]="loading() || report.page >= report.pages" (click)="changePage(report.page + 1)">Next</button>
+                <button
+                  type="button"
+                  [disabled]="loading() || report.page <= 1"
+                  (click)="changePage(report.page - 1)"
+                >
+                  ก่อนหน้า
+                </button>
+                <button
+                  type="button"
+                  [disabled]="loading() || report.page >= report.pages"
+                  (click)="changePage(report.page + 1)"
+                >
+                  ถัดไป
+                </button>
               </div>
             </footer>
           }
@@ -229,8 +309,7 @@ export class DashboardComponent implements OnInit {
   protected to = this.localDate();
   protected orderStatus = '';
   protected paymentStatus = '';
-  protected sortBy: 'createdAt' | 'orderNumber' | 'customer.name' | 'totalCents' =
-    'createdAt';
+  protected sortBy: 'createdAt' | 'orderNumber' | 'customer.name' | 'totalCents' = 'createdAt';
   protected sortOrder: 'asc' | 'desc' = 'desc';
   protected interval: 'day' | 'month' | 'year' = 'day';
   protected page = 1;
@@ -243,12 +322,7 @@ export class DashboardComponent implements OnInit {
     'cancelled',
     'returned',
   ];
-  protected readonly paymentStatusOptions = [
-    'unpaid',
-    'pending_verification',
-    'paid',
-    'refunded',
-  ];
+  protected readonly paymentStatusOptions = ['unpaid', 'pending_verification', 'paid', 'refunded'];
 
   ngOnInit(): void {
     this.applyFilters();
@@ -256,7 +330,7 @@ export class DashboardComponent implements OnInit {
 
   protected applyFilters(): void {
     if (!this.from || !this.to || this.from > this.to) {
-      this.errorMessage.set('Choose a valid date range.');
+      this.errorMessage.set('กรุณาเลือกช่วงวันที่ให้ถูกต้อง');
       return;
     }
     this.page = 1;
@@ -273,33 +347,30 @@ export class DashboardComponent implements OnInit {
   private loadDashboard(): void {
     this.loading.set(true);
     this.errorMessage.set('');
-    this.orderService.getDashboard({
-      from: this.from,
-      to: this.to,
-      search: this.search,
-      orderStatus: this.orderStatus,
-      paymentStatus: this.paymentStatus,
-      page: this.page,
-      limit: 10,
-      sortBy: this.sortBy,
-      sortOrder: this.sortOrder,
-      interval: this.interval,
-    }).subscribe({
-      next: (report) => {
-        this.data.set(report);
-        this.page = report.page;
-        this.loading.set(false);
-      },
-      error: (error: HttpErrorResponse) => {
-        const message = error.error?.message;
-        this.errorMessage.set(
-          Array.isArray(message) ? message.join(' ') :
-          typeof message === 'string' ? message :
-          error.status === 0 ? 'Could not connect to the server.' : 'Unable to load the dashboard.',
-        );
-        this.loading.set(false);
-      },
-    });
+    this.orderService
+      .getDashboard({
+        from: this.from,
+        to: this.to,
+        search: this.search,
+        orderStatus: this.orderStatus,
+        paymentStatus: this.paymentStatus,
+        page: this.page,
+        limit: 10,
+        sortBy: this.sortBy,
+        sortOrder: this.sortOrder,
+        interval: this.interval,
+      })
+      .subscribe({
+        next: (report) => {
+          this.data.set(report);
+          this.page = report.page;
+          this.loading.set(false);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.errorMessage.set(thaiErrorMessage(error, 'ไม่สามารถโหลดแดชบอร์ดได้'));
+          this.loading.set(false);
+        },
+      });
   }
 
   protected money(cents: number): string {
@@ -307,6 +378,10 @@ export class DashboardComponent implements OnInit {
       style: 'currency',
       currency: 'THB',
     }).format(cents / 100);
+  }
+
+  protected formatDate(value: string): string {
+    return formatThaiDate(value, 'short', 'short');
   }
 
   protected shortMoney(cents: number): string {
@@ -317,21 +392,31 @@ export class DashboardComponent implements OnInit {
   }
 
   protected get intervalLabel(): string {
-    return this.interval === 'day'
-      ? 'by day'
-      : this.interval === 'month'
-        ? 'by month'
-        : 'by year';
+    return this.interval === 'day' ? 'รายวัน' : this.interval === 'month' ? 'รายเดือน' : 'รายปี';
+  }
+
+  protected statusLabel(value: string): string {
+    const labels: Record<string, string> = {
+      pending: 'รอดำเนินการ',
+      confirmed: 'ยืนยันแล้ว',
+      processing: 'กำลังจัดเตรียม',
+      shipped: 'จัดส่งแล้ว',
+      delivered: 'ส่งถึงผู้รับแล้ว',
+      cancelled: 'ยกเลิกแล้ว',
+      returned: 'คืนสินค้าแล้ว',
+      unpaid: 'ยังไม่ชำระ',
+      pending_verification: 'รอตรวจสอบ',
+      paid: 'ชำระแล้ว',
+      refunded: 'คืนเงินแล้ว',
+    };
+    return labels[value] ?? value;
   }
 
   protected trendLabel(date: string): string {
     return this.interval === 'day' ? date.slice(5) : date;
   }
 
-  protected barHeight(
-    cents: number,
-    days: DashboardData['dailySales'],
-  ): number {
+  protected barHeight(cents: number, days: DashboardData['dailySales']): number {
     const max = Math.max(...days.map((day) => day.salesCents), 1);
     return Math.max(2, (cents / max) * 100);
   }
