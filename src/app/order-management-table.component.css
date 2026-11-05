@@ -1,0 +1,44 @@
+.orders-table-wrap{overflow:auto;border:1px solid #e6e9ed;border-radius:8px;background:#fff}
+.orders-heading-actions{display:flex;align-items:center;gap:8px}
+.orders-secondary-action{display:inline-flex;min-height:40px;align-items:center;justify-content:center;padding:0 12px;border:1px solid #dfe4ea;border-radius:6px;color:#405672;background:#fff;font:inherit;font-size:12px;font-weight:650;cursor:pointer}
+.orders-secondary-action:hover{background:#f5f7fa}
+.orders-secondary-action:disabled{opacity:.55;cursor:not-allowed}
+.select-col{width:38px;text-align:center}
+.select-col input{width:16px;height:16px;accent-color:#405672;cursor:pointer}
+.order-row-actions{display:flex;align-items:center;gap:12px}
+.orders-table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}
+.orders-table th{height:40px;padding:0 13px;border-bottom:1px solid #e9ebef;color:#8791a0;background:#fafbfc;font-size:12px;font-weight:650}
+.orders-table td{height:58px;padding:8px 13px;border-bottom:1px solid #eff1f4;color:#626c79;font-size:12px}
+.orders-table tbody tr:last-child td{border-bottom:0}
+.orders-table td small,.customer-name,.payment-method{display:block}
+.orders-table td small{margin-top:12px;color:#929ba7;font-size:12px}
+.order-number,.view-order{padding:0;border:0;color:#435a77;background:transparent;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.order-number:hover,.view-order:hover{text-decoration:underline}
+.customer-name{color:#3e4651;font-size:12px}
+.amount-col{text-align:right!important;color:#3d4652!important;font-weight:700}
+.status-pill{display:inline-flex;padding:4px 7px;border-radius:12px;color:#536982;background:#edf1f6;font-size:12px;font-weight:650}
+.status-pill[data-status=cancelled],.status-pill[data-status=returned]{color:#895b57;background:#f7eeed}
+.status-pill[data-status=delivered]{color:#4c715c;background:#eaf3ed}
+.payment-method{color:#555f6d;font-size:12px;font-weight:600}
+.orders-empty,.orders-loading{display:flex;min-height:220px;flex-direction:column;align-items:center;justify-content:center;color:#7e8997;text-align:center;font-size:12px}
+.orders-empty .empty-icon{display:grid;width:40px;height:40px;place-items:center;border-radius:10px;color:#657990;background:#edf1f6;font-size:31px}
+.orders-empty h2{margin:14px 0 12px;color:#3f4752;font-size:15px}
+.orders-empty p{margin:0}
+.orders-loading{flex-direction:row;gap:10px}
+.orders-spinner{width:16px;height:16px;border:2px solid #e1e5eb;border-top-color:#526782;border-radius:50%;animation:orders-spin .7s linear infinite}
+@keyframes orders-spin{to{transform:rotate(360deg)}}
+.orders-pagination{min-height:54px;color:#818b99;font-size:12px}
+.orders-pagination>div{gap:12px}
+.orders-pagination button{min-height:32px;padding:0 9px;border-color:#e1e5ea;color:#5a6573;background:#fff;font-size:12px}
+.orders-pagination button:hover:not(:disabled){border-color:#cbd3dd;background:#f7f9fb}
+.orders-secondary-action,.orders-table th,.orders-table td,.orders-table td small,
+.order-number,.view-order,.customer-name,.status-pill,.payment-method,
+.orders-empty,.orders-loading,.orders-pagination,.orders-pagination button{font-size:13px}
+.orders-table th{height:46px;padding-right:15px;padding-left:15px}
+.orders-table td{height:66px;padding-right:15px;padding-left:15px}
+.orders-table td small{margin-top:5px}
+.select-col{width:44px}
+.select-col input{width:18px;height:18px}
+.status-pill{padding:5px 9px}
+.orders-pagination button{min-height:36px;padding:0 11px}
+.orders-secondary-action{min-height:42px;padding:0 14px}

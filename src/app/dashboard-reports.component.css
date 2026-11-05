@@ -1,0 +1,29 @@
+.dashboard-report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+.dashboard-card{min-width:0;overflow:hidden;border:1px solid #e6e9ed;border-radius:8px;background:#fff}
+.dashboard-card header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 17px;border-bottom:1px solid #eceef1}
+.dashboard-card header h2{margin:0;color:#3b444f;font-size:15px}
+.dashboard-card header>span{color:#8993a0;font-size:11px}
+.dashboard-wide{grid-column:1/-1}
+.dashboard-table-wrap{overflow:auto}
+.dashboard-table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}
+.dashboard-table th,.dashboard-table td{padding:11px 14px;border-bottom:1px solid #eff1f4;font-size:12px}
+.dashboard-table th{color:#8791a0;background:#fafbfc;font-weight:650}
+.dashboard-table td{color:#566170}
+.dashboard-table td small{display:block;margin-top:4px;color:#929ba7;font-size:11px}
+.dashboard-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;color:#7e8997;font-size:12px}
+.dashboard-pagination div{display:flex;gap:8px}
+.dashboard-pagination button{min-height:32px;padding:0 10px;border:1px solid #e1e5ea;border-radius:5px;color:#5a6573;background:#fff;font:inherit;cursor:pointer}
+.dashboard-pagination button:disabled{opacity:.55;cursor:not-allowed}
+.dashboard-list{padding:4px 16px}
+.dashboard-list-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eff1f4;color:#495564;font-size:12px}
+.dashboard-list-row:last-child{border-bottom:0}
+.dashboard-list-row span strong,.dashboard-list-row span small{display:block}
+.dashboard-list-row span small{margin-top:4px;color:#8993a0}
+.sales-chart{display:flex;min-height:220px;align-items:stretch;gap:8px;overflow-x:auto;padding:16px}
+.sales-bar-column{display:flex;min-width:54px;flex:1;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px}
+.sales-bar-value{color:#69788c;font-size:10px;white-space:nowrap}
+.sales-bar-track{display:flex;width:100%;height:140px;align-items:flex-end;justify-content:center;border-bottom:1px solid #e4e8ed;background:linear-gradient(to top,#f7f9fb 1px,transparent 1px);background-size:100% 35px}
+.sales-bar{width:min(30px,65%);min-height:2px;border-radius:4px 4px 0 0;background:#617894}
+.sales-bar-date{color:#8993a0;font-size:10px;white-space:nowrap}
+@media(max-width:760px){.dashboard-report-grid{grid-template-columns:1fr}.dashboard-wide{grid-column:auto}}
+@media(max-width:520px){.dashboard-card header{align-items:flex-start;flex-direction:column}}

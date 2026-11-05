@@ -1,0 +1,42 @@
+.order-modal-backdrop{position:fixed;z-index:20;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(25,33,43,.48)}
+.order-modal{display:flex;width:min(100%,760px);max-height:min(92vh,880px);flex-direction:column;overflow:hidden;border:1px solid #e6e9ed;border-radius:10px;background:#fff;box-shadow:0 20px 70px rgba(20,31,45,.2)}
+.order-details-modal{width:min(100%,700px)}
+.order-modal-header{flex:0 0 auto;padding:18px 22px;border-bottom:1px solid #eceef1}
+.order-detail-actions{display:flex;align-items:center;gap:9px}
+.order-modal-header h2{margin:6px 0 0;color:#2f353e;font-family:'Manrope','Segoe UI',sans-serif;font-size:20px;letter-spacing:-.5px}
+.order-modal-header p{margin-top:5px}
+.modal-close{display:grid;width:29px;height:29px;place-items:center;border:1px solid #e7e9ed;border-radius:6px;color:#6f7a88;background:#fff;font-size:20px;cursor:pointer}
+.modal-close:disabled{opacity:.6;cursor:not-allowed}
+.order-modal form{display:flex;min-height:0;flex:1;flex-direction:column}
+.order-modal-body{flex:1;overflow:auto;padding:18px 22px}
+.form-section{margin-bottom:20px}
+.form-section:last-child{margin-bottom:0}
+.form-section h3,.details-items h3,.details-customer h3{margin:0 0 12px;color:#424a55;font-size:13px;font-weight:700}
+.order-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.order-form-grid label{display:flex;min-width:0;flex-direction:column;gap:5px}
+.order-form-grid label>span{color:#697483;font-size:12px;font-weight:600}
+.order-form-grid input,.order-form-grid select,.order-form-grid textarea,.add-order-item select,.draft-item input{width:100%;min-width:0;height:34px;padding:0 9px;border:1px solid #e1e5ea;border-radius:5px;outline:none;color:#414a56;background:#fff;font:inherit;font-size:12px}
+.order-form-grid textarea{height:auto;min-height:54px;padding-top:8px;resize:vertical}
+.order-form-grid input:focus,.order-form-grid select:focus,.order-form-grid textarea:focus,.add-order-item select:focus,.draft-item input:focus{border-color:#8292a8;box-shadow:0 0 0 2px rgba(82,103,130,.1)}
+.form-wide{grid-column:1/-1}
+.add-order-item{display:flex;gap:8px}
+.add-order-item select{flex:1}
+.add-order-item button{min-height:34px;flex:0 0 auto;font-size:12px}
+.form-hint{margin:12px 0 0;color:#8a94a1;font-size:12px}
+.draft-items{margin-top:12px;border-top:1px solid #edf0f3}
+.draft-item,.details-item{display:grid;grid-template-columns:minmax(0,1fr) 75px auto 24px;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #edf0f3;color:#505a67;font-size:12px}
+.draft-product strong,.draft-product small,.details-item span strong,.details-item span small{display:block}
+.draft-product strong,.details-item span strong{color:#414a56;font-size:12px}
+.draft-product small,.details-item span small{margin-top:12px;color:#8892a0;font-size:12px}
+.draft-item input{height:34px;text-align:center}
+.draft-item>button{border:0;color:#8b949f;background:transparent;font-size:18px;cursor:pointer}
+.order-modal-header p,.form-section h3,.details-items h3,.details-customer h3,
+.order-form-grid label>span,.order-form-grid input,.order-form-grid select,
+.order-form-grid textarea,.add-order-item select,.draft-item input,.form-hint,
+.draft-item,.details-item,.draft-product strong,.details-item span strong,
+.draft-product small,.details-item span small{font-size:13px}
+.order-form-grid input,.order-form-grid select,.add-order-item select,.draft-item input{height:38px}
+.order-form-grid textarea{min-height:64px}
+.add-order-item button{min-height:38px}
+.order-modal-header{padding-top:21px;padding-bottom:21px}
+.order-modal-body{padding-top:21px;padding-bottom:21px}
