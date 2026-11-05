@@ -64,6 +64,7 @@ export class ProductService {
   }
 
   imageUrl(path: string): string {
-    return new URL(path, `${API_BASE_URL}/`).toString();
+    if (/^https?:\/\//i.test(path)) return path;
+    return `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
   }
 }
