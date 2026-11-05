@@ -33,20 +33,16 @@ export class ShippingLabelPrintService {
 
   private printStyles(paperSize: StoreSettings['labelPaperSize']): string {
     const isCustomLabel = paperSize === '100x150mm';
-    const paperHeight =
-      paperSize === 'A4' ? '255mm' : paperSize === 'A5' ? '190mm' : '142mm';
+    const paperHeight = paperSize === 'A4' ? '255mm' : paperSize === 'A5' ? '190mm' : '142mm';
     const pageSize = isCustomLabel ? '100mm 150mm' : paperSize;
     const pageMargin = isCustomLabel ? '4mm' : '10mm';
     const logoSize = isCustomLabel ? '16mm' : '20mm';
     const storeNameFontSize = isCustomLabel ? '16pt' : '18pt';
     const senderFontSize = isCustomLabel ? '11pt' : '13pt';
     const recipientPadding = isCustomLabel ? '5mm 6mm' : '12mm 10mm';
-    const addressFontSize =
-      paperSize === 'A4' ? '23pt' : paperSize === 'A5' ? '18pt' : '16pt';
-    const nameFontSize =
-      paperSize === 'A4' ? '28pt' : paperSize === 'A5' ? '22pt' : '20pt';
-    const phoneFontSize =
-      paperSize === 'A4' ? '21pt' : paperSize === 'A5' ? '18pt' : '16pt';
+    const addressFontSize = paperSize === 'A4' ? '23pt' : paperSize === 'A5' ? '18pt' : '16pt';
+    const nameFontSize = paperSize === 'A4' ? '28pt' : paperSize === 'A5' ? '22pt' : '20pt';
+    const phoneFontSize = paperSize === 'A4' ? '21pt' : paperSize === 'A5' ? '18pt' : '16pt';
 
     return `
       .shipping-label-print-root { display: none; }
@@ -125,7 +121,7 @@ export class ShippingLabelPrintService {
         <p class="recipient-address">${this.escape(recipientAddress)}</p>
         ${paymentNote}
       </main>
-      <footer class="order-ref"><span>ORDER NUMBER</span><strong>${this.escape(order.orderNumber)}</strong></footer>
+      <footer class="order-ref"><span>เลขที่ออเดอร์</span><strong>${this.escape(order.orderNumber)}</strong></footer>
     </article>`;
   }
 

@@ -1,14 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  Component,
-  OnDestroy,
-  OnInit,
-  computed,
-  inject,
-  output,
-  signal,
-} from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Product, ProductService } from './product.service';
 import {
@@ -24,6 +16,8 @@ import {
   UpdateOrderInput,
 } from './order.service';
 import { SettingsService, StoreSettings } from './settings.service';
+import { thaiErrorMessage } from './error-message';
+import { formatThaiDate } from './thai-date';
 import { ShippingLabelPrintService } from './shipping-label-print.service';
 
 interface DraftOrderItem {
@@ -151,18 +145,16 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   );
   protected draftTotalCents(): number {
     const form = this.orderForm;
-    return this.draftSubtotalCents() -
-      this.toCents(form.discount) +
-      this.toCents(form.shippingCharge);
+    return (
+      this.draftSubtotalCents() - this.toCents(form.discount) + this.toCents(form.shippingCharge)
+    );
   }
   protected readonly detailsSubtotalCents = computed(() => {
     const orderItems = new Map(
       (this.selectedOrder()?.items ?? []).map((item) => [item.productId, item]),
     );
     return this.detailItems().reduce((sum, item) => {
-      const currentProduct = this.products().find(
-        (product) => product._id === item.productId,
-      );
+      const currentProduct = this.products().find((product) => product._id === item.productId);
       const originalItem = orderItems.get(item.productId);
       const unitPriceCents =
         originalItem?.sellingPriceCents ??
@@ -309,7 +301,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   protected saveNewOrder(): void {
     if (this.saving()) return;
     if (this.draftItems().length === 0) {
-      this.errorMessage.set('Add at least one product to the order.');
+      this.errorMessage.set('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการในออเดอร์');
       return;
     }
     this.saving.set(true);
@@ -318,7 +310,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       next: (order) => {
         this.showCreateForm.set(false);
         this.saving.set(false);
-        this.notice.set(`${order.orderNumber} created.`);
+        this.notice.set(`สร้างออเดอร์ ${order.orderNumber} เรียบร้อยแล้ว`);
         this.commissionChanged.emit();
         this.page.set(1);
         this.loadOrders();
@@ -383,7 +375,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       next: (updated) => {
         this.selectedOrder.set(updated);
         this.updating.set(false);
-        this.notice.set(`${updated.orderNumber} updated.`);
+        this.notice.set(`แก้ไขออเดอร์ ${updated.orderNumber} เรียบร้อยแล้ว`);
         this.commissionChanged.emit();
         this.loadOrders();
       },
@@ -404,7 +396,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
         file.size > 5 * 1024 * 1024)
     ) {
-      this.paymentSlipError.set('Select a JPEG, PNG, or WebP image up to 5 MB.');
+      this.paymentSlipError.set('กรุณาเลือกไฟล์ภาพ JPEG, PNG หรือ WebP ขนาดไม่เกิน 5 MB');
       input.value = '';
       this.selectedSlipFile.set(null);
       return;
@@ -424,7 +416,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
         this.selectedSlipFile.set(null);
         if (this.paymentSlipInput) this.paymentSlipInput.value = '';
         this.paymentSlipLoading.set(false);
-        this.notice.set(`${updated.orderNumber} payment slip uploaded.`);
+        this.notice.set(`อัปโหลดสลิปของออเดอร์ ${updated.orderNumber} เรียบร้อยแล้ว`);
         this.loadPaymentSlip(updated._id);
       },
       error: (error: HttpErrorResponse) => {
@@ -451,9 +443,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
     if (existing) {
       this.detailItems.update((items) =>
         items.map((item) =>
-          item.productId === productId
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
+          item.productId === productId ? { ...item, quantity: item.quantity + 1 } : item,
         ),
       );
     } else {
@@ -465,18 +455,14 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
 
   protected removeDetailItem(productId: string): void {
     if (this.detailItems().length <= 1) return;
-    this.detailItems.update((items) =>
-      items.filter((item) => item.productId !== productId),
-    );
+    this.detailItems.update((items) => items.filter((item) => item.productId !== productId));
     this.syncPaidAmount();
   }
 
   protected updateDetailQuantity(productId: string, quantity: number): void {
     if (!Number.isInteger(quantity) || quantity < 1) return;
     this.detailItems.update((items) =>
-      items.map((item) =>
-        item.productId === productId ? { ...item, quantity } : item,
-      ),
+      items.map((item) => (item.productId === productId ? { ...item, quantity } : item)),
     );
     this.syncPaidAmount();
   }
@@ -487,26 +473,22 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
 
   protected detailItemName(productId: string): string {
     return (
-      this.selectedOrder()?.items.find((item) => item.productId === productId)
-        ?.name ??
+      this.selectedOrder()?.items.find((item) => item.productId === productId)?.name ??
       this.products().find((product) => product._id === productId)?.name ??
-      'Product unavailable'
+      'ไม่พบสินค้า'
     );
   }
 
   protected detailItemSku(productId: string): string {
     return (
-      this.selectedOrder()?.items.find((item) => item.productId === productId)
-        ?.sku ??
+      this.selectedOrder()?.items.find((item) => item.productId === productId)?.sku ??
       this.products().find((product) => product._id === productId)?.sku ??
       ''
     );
   }
 
   protected detailItemUnitPriceCents(productId: string): number {
-    const snapshot = this.selectedOrder()?.items.find(
-      (item) => item.productId === productId,
-    );
+    const snapshot = this.selectedOrder()?.items.find((item) => item.productId === productId);
     if (snapshot) return snapshot.sellingPriceCents;
     const product = this.products().find((item) => item._id === productId);
     return product ? Math.round(product.sellingPrice * 100) : 0;
@@ -535,11 +517,31 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
     }).format(cents / 100);
   }
 
+  protected formatDate(
+    value: string,
+    dateStyle: 'short' | 'medium',
+    timeStyle: 'short' | 'medium',
+  ): string {
+    return formatThaiDate(value, dateStyle, timeStyle);
+  }
+
   protected statusLabel(value: string): string {
-    return value
-      .split('_')
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
+    const labels: Record<string, string> = {
+      pending: 'รอดำเนินการ',
+      confirmed: 'ยืนยันแล้ว',
+      processing: 'กำลังจัดเตรียม',
+      shipped: 'จัดส่งแล้ว',
+      delivered: 'ส่งถึงผู้รับแล้ว',
+      cancelled: 'ยกเลิกแล้ว',
+      returned: 'คืนสินค้าแล้ว',
+      unpaid: 'ยังไม่ชำระ',
+      pending_verification: 'รอตรวจสอบ',
+      paid: 'ชำระแล้ว',
+      refunded: 'คืนเงินแล้ว',
+      not_shipped: 'ยังไม่จัดส่ง',
+      preparing: 'กำลังเตรียมจัดส่ง',
+    };
+    return labels[value] ?? value;
   }
 
   protected trackOrder(_index: number, order: Order): string {
@@ -576,12 +578,12 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   private printLabels(orders: Order[]): void {
     if (orders.length === 0) return;
     if (this.printSettingsLoading()) {
-      this.errorMessage.set('Store settings are still loading. Please try again.');
+      this.errorMessage.set('กำลังโหลดการตั้งค่าร้าน กรุณาลองอีกครั้ง');
       return;
     }
     const settings = this.printSettings();
     if (!settings) {
-      this.errorMessage.set('Store settings are still loading. Please try again.');
+      this.errorMessage.set('กำลังโหลดการตั้งค่าร้าน กรุณาลองอีกครั้ง');
       return;
     }
     if (
@@ -589,11 +591,11 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       !settings.senderPhone.trim() ||
       !settings.senderAddress.trim()
     ) {
-      this.errorMessage.set('Complete the sender details in Settings before printing labels.');
+      this.errorMessage.set('กรุณากรอกข้อมูลผู้ส่งในหน้าตั้งค่าก่อนพิมพ์ใบปะหน้า');
       return;
     }
     if (!this.labelPrinter.print(orders, settings)) {
-      this.errorMessage.set('Allow pop-ups in your browser to print shipping labels.');
+      this.errorMessage.set('กรุณาอนุญาตป๊อปอัปในเบราว์เซอร์เพื่อพิมพ์ใบปะหน้า');
     }
   }
 
@@ -737,12 +739,6 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   }
 
   private errorMessageFrom(error: HttpErrorResponse): string {
-    const message = error.error?.message;
-    if (Array.isArray(message)) return message.join(' ');
-    if (typeof message === 'string') return message;
-    if (error.status === 0) {
-      return 'Could not connect to the server. Please check the API and try again.';
-    }
-    return 'Something went wrong. Please try again.';
+    return thaiErrorMessage(error, 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง');
   }
 }
