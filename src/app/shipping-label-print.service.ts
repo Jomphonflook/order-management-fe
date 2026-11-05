@@ -40,6 +40,7 @@ export class ShippingLabelPrintService {
     const storeNameFontSize = isCustomLabel ? '16pt' : '18pt';
     const senderFontSize = isCustomLabel ? '11pt' : '13pt';
     const recipientPadding = isCustomLabel ? '5mm 6mm' : '12mm 10mm';
+    const itemFontSize = isCustomLabel ? '10pt' : '12pt';
     const addressFontSize = paperSize === 'A4' ? '23pt' : paperSize === 'A5' ? '18pt' : '16pt';
     const nameFontSize = paperSize === 'A4' ? '28pt' : paperSize === 'A5' ? '22pt' : '20pt';
     const phoneFontSize = paperSize === 'A4' ? '21pt' : paperSize === 'A5' ? '18pt' : '16pt';
@@ -80,11 +81,14 @@ export class ShippingLabelPrintService {
         .recipient-name { margin: 0 0 5mm; font-size: ${nameFontSize}; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
         .recipient-phone { margin: 0 0 6mm; font-size: ${phoneFontSize}; font-weight: 600; }
         .recipient-address { margin: 0; font-size: ${addressFontSize}; line-height: 1.65; overflow-wrap: anywhere; }
+        .label-items { margin-top: 5mm; padding-top: 3mm; border-top: 1px solid #c5ccd5; }
+        .label-items-title { margin: 0 0 2mm; color: #64748a; font-size: 11pt; font-weight: 700; }
+        .label-items-list { display: grid; gap: 1.5mm; margin: 0; padding: 0; list-style: none; }
+        .label-item { display: flex; justify-content: space-between; gap: 4mm; font-size: ${itemFontSize}; line-height: 1.35; break-inside: avoid; }
+        .label-item-name { min-width: 0; overflow-wrap: anywhere; }
+        .label-item-quantity { flex: 0 0 auto; font-weight: 700; white-space: nowrap; }
         .payment-note { margin: 0 0 3mm; padding: 3mm; border: 1px solid #405672; color: #263d58; font-size: ${isCustomLabel ? '13pt' : '16pt'}; font-weight: 700; text-align: center; }
         .payment-note strong { display: block; margin-top: 1mm; font-size: ${isCustomLabel ? '16pt' : '19pt'}; }
-        .order-ref { display: flex; align-items: center; justify-content: space-between; gap: 5mm; padding: ${isCustomLabel ? '4mm 5mm' : '7mm 9mm'}; border-top: 1px solid #8994a2; }
-        .order-ref span { color: #64748a; font-size: 12pt; font-weight: 700; letter-spacing: .5px; }
-        .order-ref strong { font-size: 17pt; overflow-wrap: anywhere; text-align: right; }
       }
     `;
   }
@@ -102,6 +106,12 @@ export class ShippingLabelPrintService {
       order.paymentMethod === 'cod'
         ? `<p class="payment-note">เก็บเงินปลายทาง(COD)<strong>ยอดชำระ ${this.escape(this.formatMoney(order.totalCents))}</strong></p>`
         : '<p class="payment-note">ไม่ต้องเก็บเงิน</p>';
+    const items = order.items
+      .map(
+        (item) =>
+          `<li class="label-item"><span class="label-item-name">${this.escape(item.name)}</span><span class="label-item-quantity">จำนวน ${item.quantity}</span></li>`,
+      )
+      .join('');
 
     return `<article class="shipping-label paper-${settings.labelPaperSize.toLowerCase()}">
       <header class="sender">
@@ -119,9 +129,12 @@ export class ShippingLabelPrintService {
         <p class="recipient-name">${this.escape(order.customer.name)}</p>
         <p class="recipient-phone">${this.escape(order.customer.phone)}</p>
         <p class="recipient-address">${this.escape(recipientAddress)}</p>
+        <section class="label-items">
+          <h3 class="label-items-title">รายการสินค้า</h3>
+          <ul class="label-items-list">${items}</ul>
+        </section>
         ${paymentNote}
       </main>
-      <footer class="order-ref"><span>เลขที่ออเดอร์</span><strong>${this.escape(order.orderNumber)}</strong></footer>
     </article>`;
   }
 
