@@ -735,11 +735,19 @@
               </label>
               <label>
                 <span>สถานะค่าคอมมิชชัน</span>
-                <select name="commissionStatus" [(ngModel)]="detailsForm.commissionStatus">
-                  @for (status of commissionStatusOptions; track status) {
-                    <option [value]="status">{{ statusLabel(status) }}</option>
-                  }
-                </select>
+                @if (user()?.role === 'owner') {
+                  <select name="commissionStatus" [(ngModel)]="detailsForm.commissionStatus">
+                    @for (status of commissionStatusOptions; track status) {
+                      <option [value]="status">{{ statusLabel(status) }}</option>
+                    }
+                  </select>
+                } @else {
+                  <input
+                    [value]="statusLabel(detailsForm.commissionStatus)"
+                    aria-label="สถานะค่าคอมมิชชัน"
+                    readonly
+                  />
+                }
               </label>
             </div>
           </section>

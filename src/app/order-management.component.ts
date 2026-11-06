@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from './auth.service';
 import { Product, ProductService } from './product.service';
 import {
   CommissionStatus,
@@ -75,12 +76,14 @@ interface OrderDetailsForm {
   ],
 })
 export class OrderManagementComponent implements OnInit, OnDestroy {
+  private readonly auth = inject(AuthService);
   private readonly orderService = inject(OrderService);
   private readonly productService = inject(ProductService);
   private readonly settingsService = inject(SettingsService);
   private readonly labelPrinter = inject(ShippingLabelPrintService);
   protected readonly commissionChanged = output<void>();
   protected readonly orders = signal<Order[]>([]);
+  protected readonly user = this.auth.user;
   protected readonly products = signal<Product[]>([]);
   protected readonly loading = signal(false);
   protected readonly productsLoading = signal(false);
@@ -657,7 +660,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       shippingStatus: form.shippingStatus,
       shippingCompany: form.shippingCompany.trim(),
       trackingNumber: form.trackingNumber.trim(),
-      commissionStatus: form.commissionStatus,
+      commissionStatus: this.user()?.role === 'owner' ? form.commissionStatus : undefined,
     };
   }
 
