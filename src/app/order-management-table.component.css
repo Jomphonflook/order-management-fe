@@ -17,8 +17,8 @@
 .customer-name{color:#3e4651;font-size:12px}
 .amount-col{text-align:right!important;color:#3d4652!important;font-weight:700}
 .status-pill{display:inline-flex;padding:4px 7px;border-radius:12px;color:#536982;background:#edf1f6;font-size:12px;font-weight:650}
-.status-pill[data-status=cancelled],.status-pill[data-status=returned]{color:#895b57;background:#f7eeed}
-.status-pill[data-status=delivered]{color:#4c715c;background:#eaf3ed}
+.status-pill[data-status=returned],.status-pill[data-status=exchanged]{color:#895b57;background:#f7eeed}
+.status-pill[data-status=completed]{color:#4c715c;background:#eaf3ed}
 .payment-method{color:#555f6d;font-size:12px;font-weight:600}
 .orders-empty,.orders-loading{display:flex;min-height:220px;flex-direction:column;align-items:center;justify-content:center;color:#7e8997;text-align:center;font-size:12px}
 .orders-empty .empty-icon{display:grid;width:40px;height:40px;place-items:center;border-radius:10px;color:#657990;background:#edf1f6;font-size:31px}

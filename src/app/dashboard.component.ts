@@ -61,7 +61,7 @@ import { formatThaiDate } from './thai-date';
       <label>
         <span>เรียงออเดอร์ตาม</span>
         <select name="sortBy" [(ngModel)]="sortBy">
-          <option value="createdAt">วันที่สร้าง</option>
+          <option value="orderDate">วันที่ออเดอร์</option>
           <option value="orderNumber">เลขออเดอร์</option>
           <option value="customer.name">ชื่อลูกค้า</option>
           <option value="totalCents">ยอดขาย</option>
@@ -92,17 +92,20 @@ import { formatThaiDate } from './thai-date';
         <article class="dashboard-metric">
           <span>ยอดขาย</span>
           <strong>{{ money(report.summary.salesCents) }}</strong>
-          <small>COD นับเมื่อสร้างออเดอร์; โอนเงินนับเมื่อชำระแล้ว</small>
+          <small class="metric-received">
+            ยอดรับ {{ money(report.summary.receivedCents) }}
+            <span>COD นับเมื่อสร้างออเดอร์; โอนเงินนับเมื่อชำระแล้ว</span>
+          </small>
         </article>
-        <article class="dashboard-metric received">
-          <span>ยอดรับ</span>
-          <strong>{{ money(report.summary.receivedCents) }}</strong>
-          <small>ยอดเงินจริงที่บันทึกว่ารับแล้ว</small>
+        <article class="dashboard-metric product-cost">
+          <span>ต้นทุนสินค้า</span>
+          <strong>{{ money(report.summary.productCostCents) }}</strong>
+          <small>ต้นทุนของสินค้าที่ขายได้</small>
         </article>
-        <article class="dashboard-metric paid">
-          <span>ค่าคอมมิชชันที่จ่ายแล้ว</span>
-          <strong>{{ money(report.summary.paidCommissionCents) }}</strong>
-          <small>ค่าคอมมิชชันที่ระบุว่าจ่ายแล้ว</small>
+        <article class="dashboard-metric commission-due">
+          <span>ค่าคอมมิชชัน Admin รวม</span>
+          <strong>{{ money(report.summary.commissionTotalCents) }}</strong>
+          <small>รวมค่าคอมมิชชันของ Admin ทั้งที่จ่ายแล้วและยังไม่จ่าย</small>
         </article>
         <article class="dashboard-metric">
           <span>กำไรขั้นต้น</span>
@@ -116,12 +119,24 @@ import { formatThaiDate } from './thai-date';
         </article>
       </section>
 
+      <section class="dashboard-costs">
+        <div>
+          <span>ต้นทุนค่าจัดส่ง</span><strong>{{ money(report.summary.shippingCostCents) }}</strong>
+        </div>
+        <div>
+          <span>ค่าใช้จ่ายอื่น (ออเดอร์เดิม)</span><strong>{{ money(report.summary.otherExpensesCents) }}</strong>
+        </div>
+      </section>
+
       <section class="dashboard-counts" aria-label="จำนวนออเดอร์">
         <div>
           <span>ออเดอร์ทั้งหมด</span><strong>{{ report.summary.totalOrders }}</strong>
         </div>
         <div>
-          <span>รอดำเนินการ</span><strong>{{ report.summary.pendingOrders }}</strong>
+          <span>ที่ต้องจัดส่ง</span><strong>{{ report.summary.awaitingShipmentOrders }}</strong>
+        </div>
+        <div>
+          <span>ขนส่งกำลังจัดส่ง</span><strong>{{ report.summary.inTransitOrders }}</strong>
         </div>
         <div>
           <span>รอชำระเงิน</span><strong>{{ report.summary.unpaidOrders }}</strong>
@@ -130,24 +145,14 @@ import { formatThaiDate } from './thai-date';
           <span>สำเร็จ</span><strong>{{ report.summary.completedOrders }}</strong>
         </div>
         <div>
-          <span>ยกเลิก</span><strong>{{ report.summary.cancelledOrders }}</strong>
+          <span>เปลี่ยนสินค้า</span><strong>{{ report.summary.exchangedOrders }}</strong>
         </div>
         <div>
           <span>คืนสินค้า</span><strong>{{ report.summary.returnedOrders }}</strong>
         </div>
       </section>
 
-      <section class="dashboard-costs">
-        <div>
-          <span>ต้นทุนสินค้า</span><strong>{{ money(report.summary.productCostCents) }}</strong>
-        </div>
-        <div>
-          <span>ต้นทุนค่าจัดส่ง</span><strong>{{ money(report.summary.shippingCostCents) }}</strong>
-        </div>
-        <div>
-          <span>ค่าใช้จ่ายอื่น</span><strong>{{ money(report.summary.otherExpensesCents) }}</strong>
-        </div>
-      </section>
+      
 
       <div class="dashboard-report-grid">
         <section class="dashboard-card">
@@ -212,8 +217,9 @@ import { formatThaiDate } from './thai-date';
                     <th>ผู้ดูแล</th>
                     <th>ออเดอร์</th>
                     <th>ยอดขาย</th>
-                    <th>ค่าคอมมิชชัน</th>
-                    <th>จ่ายค่าคอมมิชชันแล้ว</th>
+                    <th>ค่าคอมมิชชันรวม</th>
+                    <th>จ่ายแล้ว</th>
+                    <th>ค้างจ่าย</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -224,6 +230,7 @@ import { formatThaiDate } from './thai-date';
                       <td>{{ money(admin.salesCents) }}</td>
                       <td>{{ money(admin.commissionCents) }}</td>
                       <td>{{ money(admin.paidCommissionCents) }}</td>
+                      <td>{{ money(admin.dueCommissionCents) }}</td>
                     </tr>
                   }
                 </tbody>
@@ -257,7 +264,7 @@ import { formatThaiDate } from './thai-date';
                   @for (order of report.recentOrders; track order._id) {
                     <tr>
                       <td>
-                        {{ order.orderNumber }}<small>{{ formatDate(order.createdAt) }}</small>
+                        {{ order.orderNumber }}<small>{{ formatDate(order.orderDate) }}</small>
                       </td>
                       <td>{{ order.customer.name }}</td>
                       <td>{{ order.createdByName }}</td>
@@ -309,18 +316,16 @@ export class DashboardComponent implements OnInit {
   protected to = this.localDate();
   protected orderStatus = '';
   protected paymentStatus = '';
-  protected sortBy: 'createdAt' | 'orderNumber' | 'customer.name' | 'totalCents' = 'createdAt';
+  protected sortBy: 'orderDate' | 'orderNumber' | 'customer.name' | 'totalCents' = 'orderDate';
   protected sortOrder: 'asc' | 'desc' = 'desc';
   protected interval: 'day' | 'month' | 'year' = 'day';
   protected page = 1;
   protected readonly orderStatusOptions = [
-    'pending',
-    'confirmed',
-    'processing',
-    'shipped',
-    'delivered',
-    'cancelled',
+    'awaiting_shipment',
+    'in_transit',
+    'completed',
     'returned',
+    'exchanged',
   ];
   protected readonly paymentStatusOptions = ['unpaid', 'pending_verification', 'paid', 'refunded'];
 
@@ -397,13 +402,11 @@ export class DashboardComponent implements OnInit {
 
   protected statusLabel(value: string): string {
     const labels: Record<string, string> = {
-      pending: 'รอดำเนินการ',
-      confirmed: 'ยืนยันแล้ว',
-      processing: 'กำลังจัดเตรียม',
-      shipped: 'จัดส่งแล้ว',
-      delivered: 'ส่งถึงผู้รับแล้ว',
-      cancelled: 'ยกเลิกแล้ว',
-      returned: 'คืนสินค้าแล้ว',
+      awaiting_shipment: 'ที่ต้องจัดส่ง',
+      in_transit: 'ขนส่งกำลังจัดส่ง',
+      completed: 'สำเร็จ',
+      returned: 'คืนสินค้า',
+      exchanged: 'เปลี่ยนสินค้า',
       unpaid: 'ยังไม่ชำระ',
       pending_verification: 'รอตรวจสอบ',
       paid: 'ชำระแล้ว',
@@ -423,8 +426,8 @@ export class DashboardComponent implements OnInit {
 
   protected isSalesEligible(order: DashboardData['recentOrders'][number]): boolean {
     return (
-      order.orderStatus !== 'cancelled' &&
       order.orderStatus !== 'returned' &&
+      order.orderStatus !== 'exchanged' &&
       order.paymentStatus !== 'refunded' &&
       (order.paymentMethod === 'cod' || order.paymentStatus === 'paid')
     );

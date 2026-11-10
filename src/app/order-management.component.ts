@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { Product, ProductService } from './product.service';
 import {
   CommissionStatus,
+  BulkUpdateOrderStatusInput,
   CreateOrderInput,
   Order,
   OrderItemInput,
@@ -13,7 +14,6 @@ import {
   OrderStatus,
   PaymentMethod,
   PaymentStatus,
-  ShippingStatus,
   UpdateOrderInput,
 } from './order.service';
 import { SettingsService, StoreSettings } from './settings.service';
@@ -36,9 +36,7 @@ interface OrderForm {
   province: string;
   postalCode: string;
   discount: string;
-  shippingCharge: string;
   shippingCost: string;
-  otherExpenses: string;
   paymentMethod: PaymentMethod;
   paymentNote: string;
 }
@@ -49,16 +47,14 @@ interface OrderDetailsForm {
   district: string;
   province: string;
   postalCode: string;
+  orderDate: string;
   discount: string;
-  shippingCharge: string;
   shippingCost: string;
-  otherExpenses: string;
   paymentMethod: PaymentMethod;
   orderStatus: OrderStatus;
   paymentStatus: PaymentStatus;
   amountPaid: string;
   paymentNote: string;
-  shippingStatus: ShippingStatus;
   shippingCompany: string;
   trackingNumber: string;
   commissionStatus: CommissionStatus;
@@ -104,6 +100,12 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   protected readonly search = signal('');
   protected readonly orderStatusFilter = signal('');
   protected readonly paymentStatusFilter = signal('');
+  protected readonly dateFromFilter = signal('');
+  protected readonly dateToFilter = signal('');
+  protected readonly bulkUpdating = signal(false);
+  protected readonly bulkOrderStatus = signal<OrderStatus | ''>('');
+  protected readonly bulkPaymentStatus = signal<PaymentStatus | ''>('');
+  protected readonly bulkCommissionStatus = signal<CommissionStatus | ''>('');
   protected readonly showCreateForm = signal(false);
   protected readonly selectedOrder = signal<Order | null>(null);
   protected readonly detailItems = signal<OrderItemInput[]>([]);
@@ -118,26 +120,17 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   private paymentSlipObjectUrl = '';
   private paymentSlipInput?: HTMLInputElement;
   protected readonly orderStatusOptions: OrderStatus[] = [
-    'pending',
-    'confirmed',
-    'processing',
-    'shipped',
-    'delivered',
-    'cancelled',
+    'awaiting_shipment',
+    'in_transit',
+    'completed',
     'returned',
+    'exchanged',
   ];
   protected readonly paymentStatusOptions: PaymentStatus[] = [
     'unpaid',
     'pending_verification',
     'paid',
     'refunded',
-  ];
-  protected readonly shippingStatusOptions: ShippingStatus[] = [
-    'not_shipped',
-    'preparing',
-    'shipped',
-    'delivered',
-    'returned',
   ];
   protected readonly commissionStatusOptions: CommissionStatus[] = ['pending', 'paid'];
   protected readonly draftSubtotalCents = computed(() =>
@@ -148,9 +141,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   );
   protected draftTotalCents(): number {
     const form = this.orderForm;
-    return (
-      this.draftSubtotalCents() - this.toCents(form.discount) + this.toCents(form.shippingCharge)
-    );
+    return this.draftSubtotalCents() - this.toCents(form.discount);
   }
   protected readonly detailsSubtotalCents = computed(() => {
     const orderItems = new Map(
@@ -169,7 +160,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
     return (
       this.detailsSubtotalCents() -
       this.toCents(this.detailsForm.discount) +
-      this.toCents(this.detailsForm.shippingCharge)
+      (this.selectedOrder()?.shippingChargeCents ?? 0)
     );
   }
 
@@ -193,6 +184,8 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
         search: this.search().trim() || undefined,
         orderStatus: (this.orderStatusFilter() as OrderStatus) || undefined,
         paymentStatus: (this.paymentStatusFilter() as PaymentStatus) || undefined,
+        dateFrom: this.dateFromFilter() || undefined,
+        dateTo: this.dateToFilter() || undefined,
       })
       .subscribe({
         next: (result) => {
@@ -250,6 +243,47 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
     this.selectedOrderIds.update((current) => {
       const retained = current.filter((id) => !visibleIds.includes(id));
       return selected ? [...retained, ...visibleIds] : retained;
+    });
+  }
+
+  protected applyBulkStatusUpdate(): void {
+    const orderIds = this.selectedOrderIds();
+    if (this.bulkUpdating() || orderIds.length === 0) return;
+    const input: BulkUpdateOrderStatusInput = { orderIds };
+    const orderStatus = this.bulkOrderStatus();
+    const paymentStatus = this.bulkPaymentStatus();
+    const commissionStatus = this.bulkCommissionStatus();
+    if (orderStatus) input.orderStatus = orderStatus;
+    if (paymentStatus) input.paymentStatus = paymentStatus;
+    if (commissionStatus && this.user()?.role === 'owner') {
+      input.commissionStatus = commissionStatus;
+    }
+    if (
+      input.orderStatus === undefined &&
+      input.paymentStatus === undefined &&
+      input.commissionStatus === undefined
+    ) {
+      this.errorMessage.set('กรุณาเลือกสถานะอย่างน้อย 1 รายการที่ต้องการอัปเดต');
+      return;
+    }
+
+    this.bulkUpdating.set(true);
+    this.errorMessage.set('');
+    this.orderService.bulkUpdateStatuses(input).subscribe({
+      next: (updatedOrders) => {
+        this.bulkUpdating.set(false);
+        this.selectedOrderIds.set([]);
+        this.bulkOrderStatus.set('');
+        this.bulkPaymentStatus.set('');
+        this.bulkCommissionStatus.set('');
+        this.notice.set(`อัปเดตสถานะ ${updatedOrders.length} ออเดอร์เรียบร้อยแล้ว`);
+        this.commissionChanged.emit();
+        this.loadOrders();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.errorMessage.set(this.errorMessageFrom(error));
+        this.bulkUpdating.set(false);
+      },
     });
   }
 
@@ -343,16 +377,14 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       district: order.customer.address.district,
       province: order.customer.address.province,
       postalCode: order.customer.address.postalCode,
+      orderDate: this.toLocalDateTime(order.orderDate),
       discount: (order.discountCents / 100).toFixed(2),
-      shippingCharge: (order.shippingChargeCents / 100).toFixed(2),
       shippingCost: ((order.shippingCostCents ?? 0) / 100).toFixed(2),
-      otherExpenses: (order.otherExpensesCents / 100).toFixed(2),
       paymentMethod: order.paymentMethod,
       orderStatus: order.orderStatus,
       paymentStatus: order.paymentStatus,
       amountPaid: (order.amountPaidCents / 100).toFixed(2),
       paymentNote: order.paymentNote ?? '',
-      shippingStatus: order.shippingStatus,
       shippingCompany: order.shippingCompany ?? '',
       trackingNumber: order.trackingNumber ?? '',
       commissionStatus: order.commissionStatus,
@@ -372,6 +404,10 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   protected saveOrderDetails(): void {
     const order = this.selectedOrder();
     if (!order || this.updating()) return;
+    if (!Number.isFinite(new Date(this.detailsForm.orderDate).getTime())) {
+      this.errorMessage.set('กรุณาระบุวันที่และเวลาของออเดอร์ให้ถูกต้อง');
+      return;
+    }
     this.updating.set(true);
     this.errorMessage.set('');
     this.orderService.update(order._id, this.toUpdateInput()).subscribe({
@@ -530,19 +566,15 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
 
   protected statusLabel(value: string): string {
     const labels: Record<string, string> = {
-      pending: 'รอดำเนินการ',
-      confirmed: 'ยืนยันแล้ว',
-      processing: 'กำลังจัดเตรียม',
-      shipped: 'จัดส่งแล้ว',
-      delivered: 'ส่งถึงผู้รับแล้ว',
-      cancelled: 'ยกเลิกแล้ว',
-      returned: 'คืนสินค้าแล้ว',
+      awaiting_shipment: 'ที่ต้องจัดส่ง',
+      in_transit: 'ขนส่งกำลังจัดส่ง',
+      completed: 'สำเร็จ',
+      returned: 'คืนสินค้า',
+      exchanged: 'เปลี่ยนสินค้า',
       unpaid: 'ยังไม่ชำระ',
       pending_verification: 'รอตรวจสอบ',
       paid: 'ชำระแล้ว',
       refunded: 'คืนเงินแล้ว',
-      not_shipped: 'ยังไม่จัดส่ง',
-      preparing: 'กำลังเตรียมจัดส่ง',
     };
     return labels[value] ?? value;
   }
@@ -623,9 +655,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       },
       items,
       discount: Number(form.discount || 0),
-      shippingCharge: Number(form.shippingCharge || 0),
       shippingCost: Number(form.shippingCost || 0),
-      otherExpenses: Number(form.otherExpenses || 0),
       paymentMethod: form.paymentMethod,
       paymentNote: form.paymentNote.trim(),
     };
@@ -649,15 +679,13 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
         : undefined,
       items: this.detailItems(),
       discount: Number(form.discount || 0),
-      shippingCharge: Number(form.shippingCharge || 0),
       shippingCost: Number(form.shippingCost || 0),
-      otherExpenses: Number(form.otherExpenses || 0),
       paymentMethod: form.paymentMethod,
       orderStatus: form.orderStatus,
+      orderDate: new Date(form.orderDate).toISOString(),
       paymentStatus: form.paymentStatus,
       amountPaid: Number(form.amountPaid || 0),
       paymentNote: form.paymentNote.trim(),
-      shippingStatus: form.shippingStatus,
       shippingCompany: form.shippingCompany.trim(),
       trackingNumber: form.trackingNumber.trim(),
       commissionStatus: this.user()?.role === 'owner' ? form.commissionStatus : undefined,
@@ -686,9 +714,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       province: '',
       postalCode: '',
       discount: '0',
-      shippingCharge: '0',
       shippingCost: '0',
-      otherExpenses: '0',
       paymentMethod: 'bank_transfer',
       paymentNote: '',
     };
@@ -701,16 +727,14 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       district: '',
       province: '',
       postalCode: '',
+      orderDate: '',
       discount: '0.00',
-      shippingCharge: '0.00',
       shippingCost: '0.00',
-      otherExpenses: '0.00',
       paymentMethod: 'bank_transfer',
-      orderStatus: 'pending',
+      orderStatus: 'awaiting_shipment',
       paymentStatus: 'unpaid',
       amountPaid: '0.00',
       paymentNote: '',
-      shippingStatus: 'not_shipped',
       shippingCompany: '',
       trackingNumber: '',
       commissionStatus: 'pending',
@@ -739,6 +763,12 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       this.paymentSlipObjectUrl = '';
     }
     this.paymentSlipUrl.set('');
+  }
+
+  private toLocalDateTime(value: string): string {
+    const date = new Date(value);
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return localDate.toISOString().slice(0, 16);
   }
 
   private errorMessageFrom(error: HttpErrorResponse): string {
