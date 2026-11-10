@@ -77,8 +77,84 @@
       }
     </select>
   </label>
+  <label class="orders-date-filter">
+    <input
+      type="date"
+      aria-label="กรองตั้งแต่วันที่"
+      [ngModel]="dateFromFilter()"
+      (ngModelChange)="dateFromFilter.set($event)"
+      name="dateFrom"
+    />
+  </label>
+  <label class="orders-date-filter">
+    <input
+      type="date"
+      aria-label="กรองถึงวันที่"
+      [ngModel]="dateToFilter()"
+      (ngModelChange)="dateToFilter.set($event)"
+      name="dateTo"
+    />
+  </label>
   <button class="orders-search-button" type="button" (click)="applyFilters()">ค้นหา</button>
 </section>
+
+@if (selectedOrderIds().length > 0) {
+  <section class="orders-bulk-toolbar" aria-label="อัปเดตสถานะออเดอร์ที่เลือก">
+    <strong>เลือกแล้ว {{ selectedOrderIds().length }} ออเดอร์</strong>
+    <label>
+      <span>สถานะออเดอร์</span>
+      <select
+        aria-label="สถานะออเดอร์สำหรับอัปเดตหลายรายการ"
+        [ngModel]="bulkOrderStatus()"
+        (ngModelChange)="bulkOrderStatus.set($event)"
+        name="bulkOrderStatus"
+      >
+        <option value="">ไม่เปลี่ยน</option>
+        @for (status of orderStatusOptions; track status) {
+          <option [value]="status">{{ statusLabel(status) }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>สถานะการชำระเงิน</span>
+      <select
+        aria-label="สถานะการชำระเงินสำหรับอัปเดตหลายรายการ"
+        [ngModel]="bulkPaymentStatus()"
+        (ngModelChange)="bulkPaymentStatus.set($event)"
+        name="bulkPaymentStatus"
+      >
+        <option value="">ไม่เปลี่ยน</option>
+        @for (status of paymentStatusOptions; track status) {
+          <option [value]="status">{{ statusLabel(status) }}</option>
+        }
+      </select>
+    </label>
+    @if (user()?.role === 'owner') {
+      <label>
+        <span>สถานะค่าคอมมิชชัน</span>
+        <select
+          aria-label="สถานะค่าคอมมิชชันสำหรับอัปเดตหลายรายการ"
+          [ngModel]="bulkCommissionStatus()"
+          (ngModelChange)="bulkCommissionStatus.set($event)"
+          name="bulkCommissionStatus"
+        >
+          <option value="">ไม่เปลี่ยน</option>
+          @for (status of commissionStatusOptions; track status) {
+            <option [value]="status">{{ statusLabel(status) }}</option>
+          }
+        </select>
+      </label>
+    }
+    <button
+      class="orders-search-button"
+      type="button"
+      [disabled]="bulkUpdating()"
+      (click)="applyBulkStatusUpdate()"
+    >
+      {{ bulkUpdating() ? 'กำลังอัปเดต...' : 'อัปเดตที่เลือก' }}
+    </button>
+  </section>
+}
 
 <section class="orders-table-wrap" aria-label="รายการออเดอร์">
   @if (loading()) {
@@ -128,7 +204,7 @@
               <button class="order-number" type="button" (click)="openOrder(order)">
                 {{ order.orderNumber }}
               </button>
-              <small>{{ formatDate(order.createdAt, 'medium', 'medium') }}</small>
+              <small>{{ formatDate(order.orderDate, 'medium', 'medium') }}</small>
             </td>
             <td>
               <strong class="customer-name">{{ order.customer.name }}</strong>
@@ -362,31 +438,11 @@
                 />
               </label>
               <label>
-                <span>ค่าส่งที่เรียกเก็บจากลูกค้า (฿)</span>
-                <input
-                  type="number"
-                  name="shippingCharge"
-                  [(ngModel)]="orderForm.shippingCharge"
-                  min="0"
-                  step="0.01"
-                />
-              </label>
-              <label>
                 <span>ต้นทุนค่าจัดส่งจริง (฿)</span>
                 <input
                   type="number"
                   name="shippingCost"
                   [(ngModel)]="orderForm.shippingCost"
-                  min="0"
-                  step="0.01"
-                />
-              </label>
-              <label>
-                <span>ค่าใช้จ่ายอื่น (฿)</span>
-                <input
-                  type="number"
-                  name="otherExpenses"
-                  [(ngModel)]="orderForm.otherExpenses"
                   min="0"
                   step="0.01"
                 />
@@ -448,7 +504,7 @@
           <span class="orders-eyebrow">รายละเอียดออเดอร์</span>
           <h2 id="order-details-title">{{ order.orderNumber }}</h2>
           <p>
-            สร้างเมื่อ {{ formatDate(order.createdAt, 'medium', 'medium') }} โดย
+            วันที่ออเดอร์ {{ formatDate(order.orderDate, 'medium', 'medium') }} · สร้างโดย
             {{ order.createdByName }}
           </p>
         </div>
@@ -593,10 +649,12 @@
               <span
                 >ส่วนลด <strong>−{{ money(toCents(detailsForm.discount)) }}</strong></span
               >
-              <span
-                >ค่าส่งที่เรียกเก็บ
-                <strong>{{ money(toCents(detailsForm.shippingCharge)) }}</strong></span
-              >
+              @if (order.shippingChargeCents > 0) {
+                <span
+                  >ค่าส่งที่เรียกเก็บ (ข้อมูลเดิม)
+                  <strong>{{ money(order.shippingChargeCents) }}</strong></span
+                >
+              }
               <span class="grand-total"
                 >ยอดสุทธิ <strong>{{ money(detailsTotalCents()) }}</strong></span
               >
@@ -613,6 +671,12 @@
                 >ต้นทุนค่าจัดส่ง
                 <strong>{{ money(toCents(detailsForm.shippingCost)) }}</strong></span
               >
+              @if (order.otherExpensesCents > 0) {
+                <span
+                  >ค่าใช้จ่ายอื่น (ข้อมูลเดิม)
+                  <strong>{{ money(order.otherExpensesCents) }}</strong></span
+                >
+              }
               <span
                 >กำไรสุทธิ <strong>{{ money(order.netProfitCents) }}</strong></span
               >
@@ -638,6 +702,15 @@
                 </select>
               </label>
               <label>
+                <span>วันที่และเวลาของออเดอร์</span>
+                <input
+                  type="datetime-local"
+                  name="orderDate"
+                  [(ngModel)]="detailsForm.orderDate"
+                  required
+                />
+              </label>
+              <label>
                 <span>สถานะการชำระเงิน</span>
                 <select
                   name="detailsPaymentStatus"
@@ -661,32 +734,11 @@
                 />
               </label>
               <label>
-                <span>ค่าส่งที่เรียกเก็บจากลูกค้า (฿)</span>
-                <input
-                  type="number"
-                  name="detailsShippingCharge"
-                  [(ngModel)]="detailsForm.shippingCharge"
-                  (ngModelChange)="onDetailMoneyChange()"
-                  min="0"
-                  step="0.01"
-                />
-              </label>
-              <label>
                 <span>ต้นทุนค่าจัดส่งจริง (฿)</span>
                 <input
                   type="number"
                   name="detailsShippingCost"
                   [(ngModel)]="detailsForm.shippingCost"
-                  min="0"
-                  step="0.01"
-                />
-              </label>
-              <label>
-                <span>ค่าใช้จ่ายอื่น (฿)</span>
-                <input
-                  type="number"
-                  name="detailsOtherExpenses"
-                  [(ngModel)]="detailsForm.otherExpenses"
                   min="0"
                   step="0.01"
                 />
@@ -708,14 +760,6 @@
                   [(ngModel)]="detailsForm.paymentNote"
                   maxlength="1000"
                 />
-              </label>
-              <label>
-                <span>สถานะการจัดส่ง</span>
-                <select name="shippingStatus" [(ngModel)]="detailsForm.shippingStatus">
-                  @for (status of shippingStatusOptions; track status) {
-                    <option [value]="status">{{ statusLabel(status) }}</option>
-                  }
-                </select>
               </label>
               <label>
                 <span>บริษัทขนส่ง</span>

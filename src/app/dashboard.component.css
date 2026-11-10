@@ -17,12 +17,14 @@
 .dashboard-metric span{color:#778395;font-size:12px;font-weight:650}
 .dashboard-metric strong{overflow:hidden;color:#35465d;font-size:clamp(17px,1.5vw,22px);text-overflow:ellipsis;white-space:nowrap}
 .dashboard-metric small{color:#8993a0;font-size:11px;line-height:1.4}
-.dashboard-metric.received strong{color:#4c715c}
-.dashboard-metric.paid strong{color:#8a6544}
+.dashboard-metric.product-cost strong{color:#4c715c}
+.dashboard-metric.commission-due strong{color:#8a6544}
+.dashboard-metric .metric-received{display:flex;flex-direction:column;gap:3px;color:#4c715c;font-size:12px;font-weight:650}
+.dashboard-metric .metric-received span{color:#8993a0;font-size:10px;font-weight:400}
 .dashboard-counts,.dashboard-costs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:12px}
 .dashboard-counts div,.dashboard-costs div{display:flex;justify-content:space-between;gap:8px;padding:12px;border:1px solid #e6e9ed;border-radius:7px;color:#778395;background:#fff;font-size:12px}
 .dashboard-counts strong,.dashboard-costs strong{color:#3f4b5c}
-.dashboard-costs{grid-template-columns:repeat(3,minmax(0,1fr))}
+.dashboard-costs{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:1050px){.dashboard-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.dashboard-counts{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:1050px){.dashboard-filters{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:760px){.dashboard-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}

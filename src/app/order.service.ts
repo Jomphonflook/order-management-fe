@@ -4,25 +4,17 @@ import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api.config';
 
 export type OrderStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'processing'
-  | 'shipped'
-  | 'delivered'
-  | 'cancelled'
-  | 'returned';
+  | 'awaiting_shipment'
+  | 'in_transit'
+  | 'completed'
+  | 'returned'
+  | 'exchanged';
 export type PaymentStatus =
   | 'unpaid'
   | 'pending_verification'
   | 'paid'
   | 'refunded';
 export type PaymentMethod = 'bank_transfer' | 'cod';
-export type ShippingStatus =
-  | 'not_shipped'
-  | 'preparing'
-  | 'shipped'
-  | 'delivered'
-  | 'returned';
 export type CommissionStatus = 'pending' | 'paid';
 
 export interface OrderAddress {
@@ -80,15 +72,14 @@ export interface Order {
   paidAt?: string;
   paymentNote: string;
   paymentSlip?: PaymentSlip | null;
-  shippingStatus: ShippingStatus;
   shippingCompany: string;
   trackingNumber: string;
-  shippedAt?: string;
   createdBy: string;
   createdByName: string;
   createdByEmail: string;
   commissionStatus: CommissionStatus;
   commissionPaidAt?: string;
+  orderDate: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -110,9 +101,7 @@ export interface CreateOrderInput {
   customer: OrderCustomer;
   items: OrderItemInput[];
   discount: number;
-  shippingCharge: number;
   shippingCost?: number;
-  otherExpenses: number;
   paymentMethod: PaymentMethod;
   paymentNote: string;
 }
@@ -121,15 +110,13 @@ export interface UpdateOrderInput {
   customer?: OrderCustomer;
   items?: OrderItemInput[];
   discount?: number;
-  shippingCharge?: number;
   shippingCost?: number;
-  otherExpenses?: number;
   paymentMethod?: PaymentMethod;
   orderStatus?: OrderStatus;
+  orderDate?: string;
   paymentStatus?: PaymentStatus;
   amountPaid?: number;
   paymentNote?: string;
-  shippingStatus?: ShippingStatus;
   shippingCompany?: string;
   trackingNumber?: string;
   commissionStatus?: CommissionStatus;
@@ -144,14 +131,16 @@ export interface CommissionSummary {
 export interface DashboardData {
   summary: {
     totalOrders: number;
-    pendingOrders: number;
+    awaitingShipmentOrders: number;
+    inTransitOrders: number;
     unpaidOrders: number;
     completedOrders: number;
-    cancelledOrders: number;
     returnedOrders: number;
+    exchangedOrders: number;
     salesCents: number;
     receivedCents: number;
     paidCommissionCents: number;
+    commissionTotalCents: number;
     productCostCents: number;
     shippingCostCents: number;
     otherExpensesCents: number;
@@ -166,6 +155,7 @@ export interface DashboardData {
     salesCents: number;
     commissionCents: number;
     paidCommissionCents: number;
+    dueCommissionCents: number;
   }>;
   topProducts: Array<{
     productId: string;
@@ -187,6 +177,15 @@ export interface OrderListQuery {
   search?: string;
   orderStatus?: OrderStatus;
   paymentStatus?: PaymentStatus;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface BulkUpdateOrderStatusInput {
+  orderIds: string[];
+  orderStatus?: OrderStatus;
+  paymentStatus?: PaymentStatus;
+  commissionStatus?: CommissionStatus;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -204,6 +203,8 @@ export class OrderService {
     if (query.paymentStatus) {
       params = params.set('paymentStatus', query.paymentStatus);
     }
+    if (query.dateFrom) params = params.set('dateFrom', query.dateFrom);
+    if (query.dateTo) params = params.set('dateTo', query.dateTo);
     return this.http.get<OrderListResponse>(`${API_BASE_URL}/orders`, {
       params,
       withCredentials: true,
@@ -272,6 +273,12 @@ export class OrderService {
       input,
       { withCredentials: true },
     );
+  }
+
+  bulkUpdateStatuses(input: BulkUpdateOrderStatusInput): Observable<Order[]> {
+    return this.http.patch<Order[]>(`${API_BASE_URL}/orders/bulk-status`, input, {
+      withCredentials: true,
+    });
   }
 
   uploadPaymentSlip(id: string, file: File): Observable<Order> {
