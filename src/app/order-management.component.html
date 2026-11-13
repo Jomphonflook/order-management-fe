@@ -220,12 +220,21 @@
               <span class="payment-method">{{
                 order.paymentMethod === 'cod' ? 'เก็บเงินปลายทาง' : 'โอนเงิน'
               }}</span>
-              <small>{{ statusLabel(order.paymentStatus) }}</small>
+              <span class="payment-status-pill" [attr.data-status]="order.paymentStatus">
+                {{ statusLabel(order.paymentStatus) }}
+              </span>
             </td>
             <td class="amount-col">{{ money(order.totalCents) }}</td>
             <td class="amount-col">{{ money(order.productCostCents) }}</td>
             <td class="amount-col">{{ money(order.grossProfitCents) }}</td>
-            <td class="amount-col">{{ money(order.commissionCents) }}</td>
+            <td class="amount-col">
+              <span>{{ money(order.commissionCents) }}</span>
+              @if (shouldShowCommissionStatus(order)) {
+                <small class="commission-status" [attr.data-status]="order.commissionStatus">
+                  {{ statusLabel(order.commissionStatus) }}
+                </small>
+              }
+            </td>
             <td>
               <div class="order-row-actions">
                 <button class="view-order" type="button" (click)="openOrder(order)">

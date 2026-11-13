@@ -574,9 +574,15 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       unpaid: 'ยังไม่ชำระ',
       pending_verification: 'รอตรวจสอบ',
       paid: 'ชำระแล้ว',
+      pending: 'รอชำระ',
       refunded: 'คืนเงินแล้ว',
     };
     return labels[value] ?? value;
+  }
+
+  protected shouldShowCommissionStatus(order: Order): boolean {
+    const user = this.user();
+    return user?.role === 'owner' && order.createdBy !== user.id;
   }
 
   protected trackOrder(_index: number, order: Order): string {

@@ -89,7 +89,7 @@ import { formatThaiDate } from './thai-date';
       <div class="dashboard-loading">กำลังโหลดแดชบอร์ด...</div>
     } @else if (data(); as report) {
       <section class="dashboard-metrics" aria-label="สรุปข้อมูลทางการเงิน">
-        <article class="dashboard-metric">
+        <article class="dashboard-metric sales-metric">
           <span>ยอดขาย</span>
           <strong>{{ money(report.summary.salesCents) }}</strong>
           <small class="metric-received">
@@ -105,14 +105,13 @@ import { formatThaiDate } from './thai-date';
         <article class="dashboard-metric commission-due">
           <span>ค่าคอมมิชชัน Admin รวม</span>
           <strong>{{ money(report.summary.commissionTotalCents) }}</strong>
-          <small>รวมค่าคอมมิชชันของ Admin ทั้งที่จ่ายแล้วและยังไม่จ่าย</small>
+          <small>คำนวณจากออเดอร์โดยไม่ขึ้นกับสถานะการชำระเงิน</small>
         </article>
-        <article class="dashboard-metric">
-          <span>กำไรขั้นต้น</span>
-          <strong>{{ money(report.summary.grossProfitCents) }}</strong>
-          <small>ยอดขายหักต้นทุนสินค้า</small>
+        <article class="dashboard-metric cod-fee">
+          <span>ค่าธรรมเนียม COD</span>
+          <strong>{{ money(report.summary.shippingCostCents) }}</strong>
         </article>
-        <article class="dashboard-metric">
+        <article class="dashboard-metric net-profit">
           <span>กำไรสุทธิ</span>
           <strong>{{ money(report.summary.netProfitCents) }}</strong>
           <small>หลังหักค่าคอมมิชชันและค่าใช้จ่าย</small>
@@ -120,34 +119,31 @@ import { formatThaiDate } from './thai-date';
       </section>
 
       <section class="dashboard-costs">
-        <div>
-          <span>ต้นทุนค่าจัดส่ง</span><strong>{{ money(report.summary.shippingCostCents) }}</strong>
-        </div>
-        <div>
-          <span>ค่าใช้จ่ายอื่น (ออเดอร์เดิม)</span><strong>{{ money(report.summary.otherExpensesCents) }}</strong>
+        <div class="other-expenses">
+          <span>ค่าใช้จ่ายอื่น</span><strong>{{ money(report.summary.otherExpensesCents) }}</strong>
         </div>
       </section>
 
       <section class="dashboard-counts" aria-label="จำนวนออเดอร์">
-        <div>
+        <div class="total-orders">
           <span>ออเดอร์ทั้งหมด</span><strong>{{ report.summary.totalOrders }}</strong>
         </div>
-        <div>
+        <div class="awaiting-shipment">
           <span>ที่ต้องจัดส่ง</span><strong>{{ report.summary.awaitingShipmentOrders }}</strong>
         </div>
-        <div>
+        <div class="in-transit">
           <span>ขนส่งกำลังจัดส่ง</span><strong>{{ report.summary.inTransitOrders }}</strong>
         </div>
-        <div>
+        <div class="unpaid-orders">
           <span>รอชำระเงิน</span><strong>{{ report.summary.unpaidOrders }}</strong>
         </div>
-        <div>
+        <div class="completed-orders">
           <span>สำเร็จ</span><strong>{{ report.summary.completedOrders }}</strong>
         </div>
-        <div>
+        <div class="exchanged-orders">
           <span>เปลี่ยนสินค้า</span><strong>{{ report.summary.exchangedOrders }}</strong>
         </div>
-        <div>
+        <div class="returned-orders">
           <span>คืนสินค้า</span><strong>{{ report.summary.returnedOrders }}</strong>
         </div>
       </section>
@@ -205,7 +201,7 @@ import { formatThaiDate } from './thai-date';
         <section class="dashboard-card dashboard-wide">
           <header>
             <h2>ยอดขายและค่าคอมมิชชันแยกตามผู้ดูแล</h2>
-            <span>เฉพาะออเดอร์ที่เข้าเงื่อนไข</span>
+            <span>ยอดคำนวณจากออเดอร์โดยไม่ขึ้นกับสถานะการชำระเงิน</span>
           </header>
           @if (report.salesByAdmin.length === 0) {
             <p class="dashboard-empty">ไม่มีรายการขายของผู้ดูแลในช่วงวันที่นี้</p>
