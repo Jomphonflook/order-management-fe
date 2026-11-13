@@ -16,10 +16,17 @@
 .order-number:hover,.view-order:hover{text-decoration:underline}
 .customer-name{color:#3e4651;font-size:12px}
 .amount-col{text-align:right!important;color:#3d4652!important;font-weight:700}
-.status-pill{display:inline-flex;padding:4px 7px;border-radius:12px;color:#536982;background:#edf1f6;font-size:12px;font-weight:650}
-.status-pill[data-status=returned],.status-pill[data-status=exchanged]{color:#895b57;background:#f7eeed}
+.status-pill{display:inline-flex;padding:4px 7px;border-radius:12px;color:#9a4039;background:#fff0ee;font-size:12px;font-weight:650}
 .status-pill[data-status=completed]{color:#4c715c;background:#eaf3ed}
 .payment-method{color:#555f6d;font-size:12px;font-weight:600}
+.payment-status-pill{display:inline-flex;margin-top:6px;color:#596575;font-size:13px;font-weight:750;line-height:1.35}
+.payment-status-pill[data-status=unpaid]{color:#9a4039}
+.payment-status-pill[data-status=pending_verification]{color:#8a610e}
+.payment-status-pill[data-status=paid]{color:#347047}
+.payment-status-pill[data-status=refunded]{color:#69458c}
+.commission-status{font-weight:700}
+.commission-status[data-status=pending]{color:#9a6a13}
+.commission-status[data-status=paid]{color:#347047}
 .orders-empty,.orders-loading{display:flex;min-height:220px;flex-direction:column;align-items:center;justify-content:center;color:#7e8997;text-align:center;font-size:12px}
 .orders-empty .empty-icon{display:grid;width:40px;height:40px;place-items:center;border-radius:10px;color:#657990;background:#edf1f6;font-size:31px}
 .orders-empty h2{margin:14px 0 12px;color:#3f4752;font-size:15px}
