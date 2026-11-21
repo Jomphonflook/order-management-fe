@@ -12,11 +12,17 @@
 .orders-alert,.orders-notice{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 16px;padding:10px 12px;border:1px solid #eed7d5;border-radius:6px;color:#914e4b;background:#fff9f8;font-size:12px}
 .orders-notice{border-color:#d7e5dc;color:#466c56;background:#f7fbf8}
 .orders-alert button,.orders-notice button{border:0;color:inherit;background:transparent;font-size:18px;cursor:pointer}
-.orders-toolbar{justify-content:flex-start;gap:9px;margin-bottom:13px;padding:11px;border:1px solid #e6e9ed;border-radius:8px;background:#fff}
+.orders-toolbar{flex-wrap:wrap;justify-content:flex-start;gap:9px;margin-bottom:13px;padding:11px;border:1px solid #e6e9ed;border-radius:8px;background:#fff}
 .orders-search{display:flex;min-width:220px;height:34px;flex:1;align-items:center;gap:8px;padding:0 9px;border:1px solid #e5e8ec;border-radius:5px;color:#8994a2}
 .orders-search svg{width:15px;height:15px;flex:0 0 auto}
 .orders-search input,.orders-filter select{width:100%;min-width:0;border:0;outline:0;color:#48515e;background:transparent;font:inherit;font-size:12px}
 .orders-filter select{height:39px;min-width:148px;padding:0 9px;border:1px solid #e5e8ec;border-radius:5px;background:#fff}
+.orders-date-filter{display:flex;min-width:130px;flex-direction:column;gap:4px;color:#778395;font-size:11px}
+.orders-date-filter input{box-sizing:border-box;width:100%;height:40px;padding:0 8px;border:1px solid #e5e8ec;border-radius:5px;color:#48515e;background:#fff;font:inherit;font-size:12px}
+.orders-bulk-toolbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin-bottom:13px;padding:12px;border:1px solid #dfe5ec;border-radius:8px;background:#f8fafc}
+.orders-bulk-toolbar>strong{align-self:center;margin-right:auto;color:#405672;font-size:13px}
+.orders-bulk-toolbar label{display:flex;min-width:150px;flex-direction:column;gap:5px;color:#697483;font-size:11px;font-weight:650}
+.orders-bulk-toolbar select{box-sizing:border-box;width:100%;height:40px;padding:0 9px;border:1px solid #e1e5ea;border-radius:5px;color:#48515e;background:#fff;font:inherit;font-size:12px}
 .orders-search-button{min-height:34px;font-size:12px}
 @media(min-width:781px){:host-context(.page-content-wide){width:100%}}
 .orders-eyebrow,.orders-heading p,.order-modal-header p{font-size:13px}
@@ -25,4 +31,5 @@
 .orders-primary,.orders-search-button{min-height:40px}
 .orders-search{height:40px}
 .orders-filter select{height:42px}
+.orders-date-filter input,.orders-bulk-toolbar select{font-size:13px}
 .orders-toolbar{gap:11px;padding:13px}

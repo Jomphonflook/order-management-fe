@@ -1,18 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  Component,
-  OnDestroy,
-  OnInit,
-  computed,
-  inject,
-  output,
-  signal,
-} from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from './auth.service';
 import { Product, ProductService } from './product.service';
 import {
   CommissionStatus,
+  BulkUpdateOrderStatusInput,
   CreateOrderInput,
   Order,
   OrderItemInput,
@@ -20,10 +14,11 @@ import {
   OrderStatus,
   PaymentMethod,
   PaymentStatus,
-  ShippingStatus,
   UpdateOrderInput,
 } from './order.service';
 import { SettingsService, StoreSettings } from './settings.service';
+import { thaiErrorMessage } from './error-message';
+import { formatThaiDate } from './thai-date';
 import { ShippingLabelPrintService } from './shipping-label-print.service';
 
 interface DraftOrderItem {
@@ -41,9 +36,7 @@ interface OrderForm {
   province: string;
   postalCode: string;
   discount: string;
-  shippingCharge: string;
   shippingCost: string;
-  otherExpenses: string;
   paymentMethod: PaymentMethod;
   paymentNote: string;
 }
@@ -54,16 +47,14 @@ interface OrderDetailsForm {
   district: string;
   province: string;
   postalCode: string;
+  orderDate: string;
   discount: string;
-  shippingCharge: string;
   shippingCost: string;
-  otherExpenses: string;
   paymentMethod: PaymentMethod;
   orderStatus: OrderStatus;
   paymentStatus: PaymentStatus;
   amountPaid: string;
   paymentNote: string;
-  shippingStatus: ShippingStatus;
   shippingCompany: string;
   trackingNumber: string;
   commissionStatus: CommissionStatus;
@@ -81,12 +72,14 @@ interface OrderDetailsForm {
   ],
 })
 export class OrderManagementComponent implements OnInit, OnDestroy {
+  private readonly auth = inject(AuthService);
   private readonly orderService = inject(OrderService);
   private readonly productService = inject(ProductService);
   private readonly settingsService = inject(SettingsService);
   private readonly labelPrinter = inject(ShippingLabelPrintService);
   protected readonly commissionChanged = output<void>();
   protected readonly orders = signal<Order[]>([]);
+  protected readonly user = this.auth.user;
   protected readonly products = signal<Product[]>([]);
   protected readonly loading = signal(false);
   protected readonly productsLoading = signal(false);
@@ -107,6 +100,12 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   protected readonly search = signal('');
   protected readonly orderStatusFilter = signal('');
   protected readonly paymentStatusFilter = signal('');
+  protected readonly dateFromFilter = signal('');
+  protected readonly dateToFilter = signal('');
+  protected readonly bulkUpdating = signal(false);
+  protected readonly bulkOrderStatus = signal<OrderStatus | ''>('');
+  protected readonly bulkPaymentStatus = signal<PaymentStatus | ''>('');
+  protected readonly bulkCommissionStatus = signal<CommissionStatus | ''>('');
   protected readonly showCreateForm = signal(false);
   protected readonly selectedOrder = signal<Order | null>(null);
   protected readonly detailItems = signal<OrderItemInput[]>([]);
@@ -121,26 +120,17 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   private paymentSlipObjectUrl = '';
   private paymentSlipInput?: HTMLInputElement;
   protected readonly orderStatusOptions: OrderStatus[] = [
-    'pending',
-    'confirmed',
-    'processing',
-    'shipped',
-    'delivered',
-    'cancelled',
+    'awaiting_shipment',
+    'in_transit',
+    'completed',
     'returned',
+    'exchanged',
   ];
   protected readonly paymentStatusOptions: PaymentStatus[] = [
     'unpaid',
     'pending_verification',
     'paid',
     'refunded',
-  ];
-  protected readonly shippingStatusOptions: ShippingStatus[] = [
-    'not_shipped',
-    'preparing',
-    'shipped',
-    'delivered',
-    'returned',
   ];
   protected readonly commissionStatusOptions: CommissionStatus[] = ['pending', 'paid'];
   protected readonly draftSubtotalCents = computed(() =>
@@ -151,18 +141,14 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   );
   protected draftTotalCents(): number {
     const form = this.orderForm;
-    return this.draftSubtotalCents() -
-      this.toCents(form.discount) +
-      this.toCents(form.shippingCharge);
+    return this.draftSubtotalCents() - this.toCents(form.discount);
   }
   protected readonly detailsSubtotalCents = computed(() => {
     const orderItems = new Map(
       (this.selectedOrder()?.items ?? []).map((item) => [item.productId, item]),
     );
     return this.detailItems().reduce((sum, item) => {
-      const currentProduct = this.products().find(
-        (product) => product._id === item.productId,
-      );
+      const currentProduct = this.products().find((product) => product._id === item.productId);
       const originalItem = orderItems.get(item.productId);
       const unitPriceCents =
         originalItem?.sellingPriceCents ??
@@ -174,7 +160,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
     return (
       this.detailsSubtotalCents() -
       this.toCents(this.detailsForm.discount) +
-      this.toCents(this.detailsForm.shippingCharge)
+      (this.selectedOrder()?.shippingChargeCents ?? 0)
     );
   }
 
@@ -198,6 +184,8 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
         search: this.search().trim() || undefined,
         orderStatus: (this.orderStatusFilter() as OrderStatus) || undefined,
         paymentStatus: (this.paymentStatusFilter() as PaymentStatus) || undefined,
+        dateFrom: this.dateFromFilter() || undefined,
+        dateTo: this.dateToFilter() || undefined,
       })
       .subscribe({
         next: (result) => {
@@ -258,6 +246,47 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
     });
   }
 
+  protected applyBulkStatusUpdate(): void {
+    const orderIds = this.selectedOrderIds();
+    if (this.bulkUpdating() || orderIds.length === 0) return;
+    const input: BulkUpdateOrderStatusInput = { orderIds };
+    const orderStatus = this.bulkOrderStatus();
+    const paymentStatus = this.bulkPaymentStatus();
+    const commissionStatus = this.bulkCommissionStatus();
+    if (orderStatus) input.orderStatus = orderStatus;
+    if (paymentStatus) input.paymentStatus = paymentStatus;
+    if (commissionStatus && this.user()?.role === 'owner') {
+      input.commissionStatus = commissionStatus;
+    }
+    if (
+      input.orderStatus === undefined &&
+      input.paymentStatus === undefined &&
+      input.commissionStatus === undefined
+    ) {
+      this.errorMessage.set('กรุณาเลือกสถานะอย่างน้อย 1 รายการที่ต้องการอัปเดต');
+      return;
+    }
+
+    this.bulkUpdating.set(true);
+    this.errorMessage.set('');
+    this.orderService.bulkUpdateStatuses(input).subscribe({
+      next: (updatedOrders) => {
+        this.bulkUpdating.set(false);
+        this.selectedOrderIds.set([]);
+        this.bulkOrderStatus.set('');
+        this.bulkPaymentStatus.set('');
+        this.bulkCommissionStatus.set('');
+        this.notice.set(`อัปเดตสถานะ ${updatedOrders.length} ออเดอร์เรียบร้อยแล้ว`);
+        this.commissionChanged.emit();
+        this.loadOrders();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.errorMessage.set(this.errorMessageFrom(error));
+        this.bulkUpdating.set(false);
+      },
+    });
+  }
+
   protected printSelectedLabels(): void {
     this.printLabels(this.selectedOrders());
   }
@@ -309,7 +338,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   protected saveNewOrder(): void {
     if (this.saving()) return;
     if (this.draftItems().length === 0) {
-      this.errorMessage.set('Add at least one product to the order.');
+      this.errorMessage.set('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการในออเดอร์');
       return;
     }
     this.saving.set(true);
@@ -318,7 +347,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       next: (order) => {
         this.showCreateForm.set(false);
         this.saving.set(false);
-        this.notice.set(`${order.orderNumber} created.`);
+        this.notice.set(`สร้างออเดอร์ ${order.orderNumber} เรียบร้อยแล้ว`);
         this.commissionChanged.emit();
         this.page.set(1);
         this.loadOrders();
@@ -348,16 +377,14 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       district: order.customer.address.district,
       province: order.customer.address.province,
       postalCode: order.customer.address.postalCode,
+      orderDate: this.toLocalDateTime(order.orderDate),
       discount: (order.discountCents / 100).toFixed(2),
-      shippingCharge: (order.shippingChargeCents / 100).toFixed(2),
       shippingCost: ((order.shippingCostCents ?? 0) / 100).toFixed(2),
-      otherExpenses: (order.otherExpensesCents / 100).toFixed(2),
       paymentMethod: order.paymentMethod,
       orderStatus: order.orderStatus,
       paymentStatus: order.paymentStatus,
       amountPaid: (order.amountPaidCents / 100).toFixed(2),
       paymentNote: order.paymentNote ?? '',
-      shippingStatus: order.shippingStatus,
       shippingCompany: order.shippingCompany ?? '',
       trackingNumber: order.trackingNumber ?? '',
       commissionStatus: order.commissionStatus,
@@ -377,13 +404,17 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   protected saveOrderDetails(): void {
     const order = this.selectedOrder();
     if (!order || this.updating()) return;
+    if (!Number.isFinite(new Date(this.detailsForm.orderDate).getTime())) {
+      this.errorMessage.set('กรุณาระบุวันที่และเวลาของออเดอร์ให้ถูกต้อง');
+      return;
+    }
     this.updating.set(true);
     this.errorMessage.set('');
     this.orderService.update(order._id, this.toUpdateInput()).subscribe({
       next: (updated) => {
         this.selectedOrder.set(updated);
         this.updating.set(false);
-        this.notice.set(`${updated.orderNumber} updated.`);
+        this.notice.set(`แก้ไขออเดอร์ ${updated.orderNumber} เรียบร้อยแล้ว`);
         this.commissionChanged.emit();
         this.loadOrders();
       },
@@ -404,7 +435,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
         file.size > 5 * 1024 * 1024)
     ) {
-      this.paymentSlipError.set('Select a JPEG, PNG, or WebP image up to 5 MB.');
+      this.paymentSlipError.set('กรุณาเลือกไฟล์ภาพ JPEG, PNG หรือ WebP ขนาดไม่เกิน 5 MB');
       input.value = '';
       this.selectedSlipFile.set(null);
       return;
@@ -424,7 +455,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
         this.selectedSlipFile.set(null);
         if (this.paymentSlipInput) this.paymentSlipInput.value = '';
         this.paymentSlipLoading.set(false);
-        this.notice.set(`${updated.orderNumber} payment slip uploaded.`);
+        this.notice.set(`อัปโหลดสลิปของออเดอร์ ${updated.orderNumber} เรียบร้อยแล้ว`);
         this.loadPaymentSlip(updated._id);
       },
       error: (error: HttpErrorResponse) => {
@@ -451,9 +482,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
     if (existing) {
       this.detailItems.update((items) =>
         items.map((item) =>
-          item.productId === productId
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
+          item.productId === productId ? { ...item, quantity: item.quantity + 1 } : item,
         ),
       );
     } else {
@@ -465,18 +494,14 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
 
   protected removeDetailItem(productId: string): void {
     if (this.detailItems().length <= 1) return;
-    this.detailItems.update((items) =>
-      items.filter((item) => item.productId !== productId),
-    );
+    this.detailItems.update((items) => items.filter((item) => item.productId !== productId));
     this.syncPaidAmount();
   }
 
   protected updateDetailQuantity(productId: string, quantity: number): void {
     if (!Number.isInteger(quantity) || quantity < 1) return;
     this.detailItems.update((items) =>
-      items.map((item) =>
-        item.productId === productId ? { ...item, quantity } : item,
-      ),
+      items.map((item) => (item.productId === productId ? { ...item, quantity } : item)),
     );
     this.syncPaidAmount();
   }
@@ -487,26 +512,22 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
 
   protected detailItemName(productId: string): string {
     return (
-      this.selectedOrder()?.items.find((item) => item.productId === productId)
-        ?.name ??
+      this.selectedOrder()?.items.find((item) => item.productId === productId)?.name ??
       this.products().find((product) => product._id === productId)?.name ??
-      'Product unavailable'
+      'ไม่พบสินค้า'
     );
   }
 
   protected detailItemSku(productId: string): string {
     return (
-      this.selectedOrder()?.items.find((item) => item.productId === productId)
-        ?.sku ??
+      this.selectedOrder()?.items.find((item) => item.productId === productId)?.sku ??
       this.products().find((product) => product._id === productId)?.sku ??
       ''
     );
   }
 
   protected detailItemUnitPriceCents(productId: string): number {
-    const snapshot = this.selectedOrder()?.items.find(
-      (item) => item.productId === productId,
-    );
+    const snapshot = this.selectedOrder()?.items.find((item) => item.productId === productId);
     if (snapshot) return snapshot.sellingPriceCents;
     const product = this.products().find((item) => item._id === productId);
     return product ? Math.round(product.sellingPrice * 100) : 0;
@@ -535,11 +556,33 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
     }).format(cents / 100);
   }
 
+  protected formatDate(
+    value: string,
+    dateStyle: 'short' | 'medium',
+    timeStyle: 'short' | 'medium',
+  ): string {
+    return formatThaiDate(value, dateStyle, timeStyle);
+  }
+
   protected statusLabel(value: string): string {
-    return value
-      .split('_')
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
+    const labels: Record<string, string> = {
+      awaiting_shipment: 'ที่ต้องจัดส่ง',
+      in_transit: 'ขนส่งกำลังจัดส่ง',
+      completed: 'สำเร็จ',
+      returned: 'คืนสินค้า',
+      exchanged: 'เปลี่ยนสินค้า',
+      unpaid: 'ยังไม่ชำระ',
+      pending_verification: 'รอตรวจสอบ',
+      paid: 'ชำระแล้ว',
+      pending: 'รอชำระ',
+      refunded: 'คืนเงินแล้ว',
+    };
+    return labels[value] ?? value;
+  }
+
+  protected shouldShowCommissionStatus(order: Order): boolean {
+    const user = this.user();
+    return user?.role === 'owner' && order.createdBy !== user.id;
   }
 
   protected trackOrder(_index: number, order: Order): string {
@@ -576,12 +619,12 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   private printLabels(orders: Order[]): void {
     if (orders.length === 0) return;
     if (this.printSettingsLoading()) {
-      this.errorMessage.set('Store settings are still loading. Please try again.');
+      this.errorMessage.set('กำลังโหลดการตั้งค่าร้าน กรุณาลองอีกครั้ง');
       return;
     }
     const settings = this.printSettings();
     if (!settings) {
-      this.errorMessage.set('Store settings are still loading. Please try again.');
+      this.errorMessage.set('กำลังโหลดการตั้งค่าร้าน กรุณาลองอีกครั้ง');
       return;
     }
     if (
@@ -589,11 +632,11 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       !settings.senderPhone.trim() ||
       !settings.senderAddress.trim()
     ) {
-      this.errorMessage.set('Complete the sender details in Settings before printing labels.');
+      this.errorMessage.set('กรุณากรอกข้อมูลผู้ส่งในหน้าตั้งค่าก่อนพิมพ์ใบปะหน้า');
       return;
     }
     if (!this.labelPrinter.print(orders, settings)) {
-      this.errorMessage.set('Allow pop-ups in your browser to print shipping labels.');
+      this.errorMessage.set('กรุณาอนุญาตป๊อปอัปในเบราว์เซอร์เพื่อพิมพ์ใบปะหน้า');
     }
   }
 
@@ -618,9 +661,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       },
       items,
       discount: Number(form.discount || 0),
-      shippingCharge: Number(form.shippingCharge || 0),
       shippingCost: Number(form.shippingCost || 0),
-      otherExpenses: Number(form.otherExpenses || 0),
       paymentMethod: form.paymentMethod,
       paymentNote: form.paymentNote.trim(),
     };
@@ -644,18 +685,16 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
         : undefined,
       items: this.detailItems(),
       discount: Number(form.discount || 0),
-      shippingCharge: Number(form.shippingCharge || 0),
       shippingCost: Number(form.shippingCost || 0),
-      otherExpenses: Number(form.otherExpenses || 0),
       paymentMethod: form.paymentMethod,
       orderStatus: form.orderStatus,
+      orderDate: new Date(form.orderDate).toISOString(),
       paymentStatus: form.paymentStatus,
       amountPaid: Number(form.amountPaid || 0),
       paymentNote: form.paymentNote.trim(),
-      shippingStatus: form.shippingStatus,
       shippingCompany: form.shippingCompany.trim(),
       trackingNumber: form.trackingNumber.trim(),
-      commissionStatus: form.commissionStatus,
+      commissionStatus: this.user()?.role === 'owner' ? form.commissionStatus : undefined,
     };
   }
 
@@ -681,9 +720,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       province: '',
       postalCode: '',
       discount: '0',
-      shippingCharge: '0',
       shippingCost: '0',
-      otherExpenses: '0',
       paymentMethod: 'bank_transfer',
       paymentNote: '',
     };
@@ -696,16 +733,14 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
       district: '',
       province: '',
       postalCode: '',
+      orderDate: '',
       discount: '0.00',
-      shippingCharge: '0.00',
       shippingCost: '0.00',
-      otherExpenses: '0.00',
       paymentMethod: 'bank_transfer',
-      orderStatus: 'pending',
+      orderStatus: 'awaiting_shipment',
       paymentStatus: 'unpaid',
       amountPaid: '0.00',
       paymentNote: '',
-      shippingStatus: 'not_shipped',
       shippingCompany: '',
       trackingNumber: '',
       commissionStatus: 'pending',
@@ -736,13 +771,13 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
     this.paymentSlipUrl.set('');
   }
 
+  private toLocalDateTime(value: string): string {
+    const date = new Date(value);
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return localDate.toISOString().slice(0, 16);
+  }
+
   private errorMessageFrom(error: HttpErrorResponse): string {
-    const message = error.error?.message;
-    if (Array.isArray(message)) return message.join(' ');
-    if (typeof message === 'string') return message;
-    if (error.status === 0) {
-      return 'Could not connect to the server. Please check the API and try again.';
-    }
-    return 'Something went wrong. Please try again.';
+    return thaiErrorMessage(error, 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง');
   }
 }

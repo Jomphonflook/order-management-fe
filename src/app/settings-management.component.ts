@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LabelPaperSize, SettingsService, StoreSettings } from './settings.service';
+import { thaiErrorMessage } from './error-message';
 
 @Component({
   selector: 'app-settings-management',
@@ -10,54 +11,52 @@ import { LabelPaperSize, SettingsService, StoreSettings } from './settings.servi
   template: `
     <section class="settings-heading">
       <div>
-        <span class="settings-eyebrow">WORKSPACE CONFIGURATION</span>
-        <h1>Settings<span>.</span></h1>
-        <p>Manage your store identity and shipping label defaults.</p>
+        <span class="settings-eyebrow">ตั้งค่าระบบ</span>
+        <h1>ตั้งค่า<span>.</span></h1>
+        <p>จัดการข้อมูลร้านค้าและรูปแบบใบปะหน้า</p>
       </div>
     </section>
 
     @if (errorMessage()) {
       <div class="settings-message settings-error" role="alert">
         {{ errorMessage() }}
-        <button type="button" aria-label="Dismiss message" (click)="errorMessage.set('')">×</button>
+        <button type="button" aria-label="ปิดข้อความ" (click)="errorMessage.set('')">×</button>
       </div>
     }
     @if (notice()) {
       <div class="settings-message settings-success" role="status">
         {{ notice() }}
-        <button type="button" aria-label="Dismiss message" (click)="notice.set('')">×</button>
+        <button type="button" aria-label="ปิดข้อความ" (click)="notice.set('')">×</button>
       </div>
     }
 
     @if (loading()) {
       <section class="settings-loading">
-        <span class="settings-spinner"></span> Loading settings...
+        <span class="settings-spinner"></span> กำลังโหลดการตั้งค่า...
       </section>
     } @else {
       <form class="settings-card" #settingsForm="ngForm" (ngSubmit)="save()">
         <header>
           <div>
-            <h2>Store and sender details</h2>
-            <p>
-              These details appear on parcel labels. Carrier and tracking details are never printed.
-            </p>
+            <h2>ข้อมูลร้านค้าและผู้ส่ง</h2>
+            <p>ข้อมูลนี้จะแสดงบนใบปะหน้า โดยจะไม่พิมพ์ชื่อบริษัทขนส่งและเลขพัสดุ</p>
           </div>
         </header>
         <div class="settings-grid">
           <label>
-            <span>Store name *</span>
+            <span>ชื่อร้าน *</span>
             <input name="storeName" [(ngModel)]="form.storeName" required maxlength="150" />
           </label>
           <label>
-            <span>Sender name *</span>
+            <span>ชื่อผู้ส่ง *</span>
             <input name="senderName" [(ngModel)]="form.senderName" required maxlength="150" />
           </label>
           <label>
-            <span>Sender phone *</span>
+            <span>เบอร์โทรศัพท์ผู้ส่ง *</span>
             <input name="senderPhone" [(ngModel)]="form.senderPhone" required maxlength="30" />
           </label>
           <label>
-            <span>Label paper size *</span>
+            <span>ขนาดกระดาษใบปะหน้า *</span>
             <select name="labelPaperSize" [(ngModel)]="form.labelPaperSize">
               <option value="A4">A4</option>
               <option value="A5">A5</option>
@@ -65,7 +64,7 @@ import { LabelPaperSize, SettingsService, StoreSettings } from './settings.servi
             </select>
           </label>
           <label class="settings-wide">
-            <span>Sender address *</span>
+            <span>ที่อยู่ผู้ส่ง *</span>
             <textarea
               name="senderAddress"
               [(ngModel)]="form.senderAddress"
@@ -76,9 +75,9 @@ import { LabelPaperSize, SettingsService, StoreSettings } from './settings.servi
           </label>
         </div>
         <footer>
-          <span>Only the Owner can change these settings.</span>
+          <span>เฉพาะเจ้าของร้านเท่านั้นที่แก้ไขการตั้งค่านี้ได้</span>
           <button type="submit" [disabled]="settingsForm.invalid || saving()">
-            {{ saving() ? 'Saving...' : 'Save settings' }}
+            {{ saving() ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า' }}
           </button>
         </footer>
       </form>
@@ -289,7 +288,7 @@ export class SettingsManagementComponent implements OnInit {
     this.settingsService.update({ ...this.form }).subscribe({
       next: (settings) => {
         this.setFormValues(settings);
-        this.notice.set('Settings saved.');
+        this.notice.set('บันทึกการตั้งค่าเรียบร้อยแล้ว');
         this.saving.set(false);
       },
       error: (error: HttpErrorResponse) => {
@@ -332,11 +331,6 @@ export class SettingsManagementComponent implements OnInit {
   }
 
   private messageFor(error: HttpErrorResponse): string {
-    const message = error.error?.message;
-    if (Array.isArray(message)) return message.join(' ');
-    if (typeof message === 'string') return message;
-    return error.status === 0
-      ? 'Could not connect to the server. Please try again.'
-      : 'Unable to load or save settings.';
+    return thaiErrorMessage(error, 'ไม่สามารถโหลดหรือบันทึกการตั้งค่าได้');
   }
 }
