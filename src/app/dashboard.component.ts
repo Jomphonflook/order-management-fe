@@ -13,7 +13,7 @@ import { formatThaiDate } from './thai-date';
     <section class="dashboard-heading">
       <div>
         <span class="dashboard-eyebrow">ภาพรวมร้านค้า</span>
-        <h1>แดชบอร์ด<span>.</span></h1>
+        <h1>แดชบอร์ด</h1>
         <p>สรุปยอดขาย ยอดรับ ยอดจ่าย และผลการดำเนินงาน</p>
       </div>
     </section>
@@ -23,66 +23,77 @@ import { formatThaiDate } from './thai-date';
     }
 
     <form class="dashboard-filters" (ngSubmit)="applyFilters()">
-      <label class="dashboard-search">
-        <span>ค้นหาออเดอร์ ลูกค้า หรือผู้ดูแล</span>
-        <input
-          name="search"
-          type="search"
-          [(ngModel)]="search"
-          placeholder="เลขออเดอร์ ชื่อลูกค้า เบอร์โทร หรือผู้ดูแล"
-        />
-      </label>
-      <label>
-        <span>ตั้งแต่วันที่</span>
-        <input name="from" type="date" [(ngModel)]="from" required />
-      </label>
-      <label>
-        <span>ถึงวันที่</span>
-        <input name="to" type="date" [(ngModel)]="to" required />
-      </label>
-      <label>
-        <span>สถานะออเดอร์</span>
-        <select name="orderStatus" [(ngModel)]="orderStatus">
-          <option value="">ทุกสถานะ</option>
-          @for (status of orderStatusOptions; track status) {
-            <option [value]="status">{{ statusLabel(status) }}</option>
-          }
-        </select>
-      </label>
-      <label>
-        <span>สถานะการชำระเงิน</span>
-        <select name="paymentStatus" [(ngModel)]="paymentStatus">
-          <option value="">ทุกสถานะการชำระเงิน</option>
-          @for (status of paymentStatusOptions; track status) {
-            <option [value]="status">{{ statusLabel(status) }}</option>
-          }
-        </select>
-      </label>
-      <label>
-        <span>เรียงออเดอร์ตาม</span>
-        <select name="sortBy" [(ngModel)]="sortBy">
-          <option value="orderDate">วันที่ออเดอร์</option>
-          <option value="orderNumber">เลขออเดอร์</option>
-          <option value="customer.name">ชื่อลูกค้า</option>
-          <option value="totalCents">ยอดขาย</option>
-        </select>
-      </label>
-      <label>
-        <span>ลำดับการเรียง</span>
-        <select name="sortOrder" [(ngModel)]="sortOrder">
-          <option value="desc">จากมากไปน้อย</option>
-          <option value="asc">จากน้อยไปมาก</option>
-        </select>
-      </label>
-      <label>
-        <span>กราฟยอดขาย</span>
-        <select name="chartInterval" [(ngModel)]="interval">
-          <option value="day">รายวัน</option>
-          <option value="month">รายเดือน</option>
-          <option value="year">รายปี</option>
-        </select>
-      </label>
-      <button class="dashboard-primary" type="submit" [disabled]="loading()">ค้นหา</button>
+      <div class="dashboard-filter-main">
+        <label class="dashboard-search">
+          <span class="visually-hidden">ค้นหาออเดอร์ ลูกค้า หรือผู้ดูแล</span>
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.5" />
+            <path d="m13.2 13.2 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          <input
+            name="search"
+            type="search"
+            [(ngModel)]="search"
+            placeholder="ค้นหาเลขออเดอร์ ชื่อลูกค้า หรือเบอร์โทร"
+          />
+        </label>
+        <div class="dashboard-date-range">
+          <label>
+            <span>ตั้งแต่</span>
+            <input name="from" type="date" [(ngModel)]="from" required />
+          </label>
+          <span class="date-range-divider" aria-hidden="true">–</span>
+          <label>
+            <span>ถึง</span>
+            <input name="to" type="date" [(ngModel)]="to" required />
+          </label>
+        </div>
+        <button class="dashboard-primary" type="submit" [disabled]="loading()">ค้นหา</button>
+      </div>
+      <div class="dashboard-filter-secondary" aria-label="ตัวกรองเพิ่มเติม">
+        <label>
+          <span>สถานะออเดอร์</span>
+          <select name="orderStatus" [(ngModel)]="orderStatus">
+            <option value="">ทุกสถานะ</option>
+            @for (status of orderStatusOptions; track status) {
+              <option [value]="status">{{ statusLabel(status) }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>สถานะชำระเงิน</span>
+          <select name="paymentStatus" [(ngModel)]="paymentStatus">
+            <option value="">ทุกสถานะ</option>
+            @for (status of paymentStatusOptions; track status) {
+              <option [value]="status">{{ statusLabel(status) }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>เรียงตาม</span>
+          <select name="sortBy" [(ngModel)]="sortBy">
+            <option value="orderDate">วันที่ออเดอร์</option>
+            <option value="orderNumber">เลขออเดอร์</option>
+            <option value="customer.name">ชื่อลูกค้า</option>
+            <option value="totalCents">ยอดขาย</option>
+          </select>
+        </label>
+        <label>
+          <span>ลำดับ</span>
+          <select name="sortOrder" [(ngModel)]="sortOrder">
+            <option value="desc">มากไปน้อย</option>
+            <option value="asc">น้อยไปมาก</option>
+          </select>
+        </label>
+        <label>
+          <span>ช่วงกราฟ</span>
+          <select name="chartInterval" [(ngModel)]="interval">
+            <option value="day">รายวัน</option>
+            <option value="month">รายเดือน</option>
+            <option value="year">รายปี</option>
+          </select>
+        </label>
+      </div>
     </form>
 
     @if (loading()) {
@@ -90,62 +101,89 @@ import { formatThaiDate } from './thai-date';
     } @else if (data(); as report) {
       <section class="dashboard-metrics" aria-label="สรุปข้อมูลทางการเงิน">
         <article class="dashboard-metric sales-metric">
-          <span>ยอดขาย</span>
-          <strong>{{ money(report.summary.salesCents) }}</strong>
+          <div class="metric-heading">
+            <span>ยอดขาย</span>
+            <span class="metric-icon sales-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M3 15.5 7.2 11l3 2.5L17 6.5M12.5 6.5H17v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <strong class="metric-value">{{ money(report.summary.salesCents) }}</strong>
           <small class="metric-received">
             ยอดรับ {{ money(report.summary.receivedCents) }}
             <span>COD นับเมื่อสร้างออเดอร์; โอนเงินนับเมื่อชำระแล้ว</span>
           </small>
         </article>
         <article class="dashboard-metric product-cost">
-          <span>ต้นทุนสินค้า</span>
-          <strong>{{ money(report.summary.productCostCents) }}</strong>
+          <div class="metric-heading">
+            <span>ต้นทุนสินค้า</span>
+            <span class="metric-icon cost-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M4 5.5h12v10H4zM7 5.5v-2h6v2M7 9h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <strong class="metric-value">{{ money(report.summary.productCostCents) }}</strong>
           <small>ต้นทุนของสินค้าที่ขายได้</small>
         </article>
         <article class="dashboard-metric commission-due">
-          <span>ค่าคอมมิชชัน Admin รวม</span>
-          <strong>{{ money(report.summary.commissionTotalCents) }}</strong>
+          <div class="metric-heading">
+            <span>ค่าคอมมิชชัน Admin</span>
+            <span class="metric-icon commission-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M12.5 7.5c-.5-.6-1.2-.9-2.2-.9-1.1 0-1.8.5-1.8 1.3 0 2 4.2.8 4.2 3.2 0 .9-.8 1.6-2.1 1.6-1 0-1.9-.4-2.5-1.1M10 5.3v9.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </span>
+          </div>
+          <strong class="metric-value">{{ money(report.summary.commissionTotalCents) }}</strong>
           <small>คำนวณจากออเดอร์โดยไม่ขึ้นกับสถานะการชำระเงิน</small>
         </article>
         <article class="dashboard-metric cod-fee">
-          <span>ค่าธรรมเนียม COD</span>
-          <strong>{{ money(report.summary.shippingCostCents) }}</strong>
+          <div class="metric-heading">
+            <span>ค่าธรรมเนียม COD</span>
+            <span class="metric-icon cod-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none"><rect x="3" y="4.5" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3 8h14M6 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </span>
+          </div>
+          <strong class="metric-value">{{ money(report.summary.shippingCostCents) }}</strong>
+          <small>ต้นทุนจัดส่งที่บันทึกไว้</small>
         </article>
         <article class="dashboard-metric net-profit">
-          <span>กำไรสุทธิ</span>
-          <strong>{{ money(report.summary.netProfitCents) }}</strong>
+          <div class="metric-heading">
+            <span>กำไรสุทธิ</span>
+            <span class="metric-icon profit-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M10 2.8 16 5v4.6c0 3.6-2.5 6.2-6 7.6-3.5-1.4-6-4-6-7.6V5l6-2.2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m7.2 9.8 1.8 1.8 3.8-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <strong class="metric-value">{{ money(report.summary.netProfitCents) }}</strong>
           <small>หลังหักค่าคอมมิชชันและค่าใช้จ่าย</small>
         </article>
       </section>
 
       <section class="dashboard-costs">
         <div class="other-expenses">
+          <span class="expense-dot" aria-hidden="true"></span>
           <span>ค่าใช้จ่ายอื่น</span><strong>{{ money(report.summary.otherExpensesCents) }}</strong>
         </div>
       </section>
 
-      <section class="dashboard-counts" aria-label="จำนวนออเดอร์">
-        <div class="total-orders">
-          <span>ออเดอร์ทั้งหมด</span><strong>{{ report.summary.totalOrders }}</strong>
-        </div>
-        <div class="awaiting-shipment">
-          <span>ที่ต้องจัดส่ง</span><strong>{{ report.summary.awaitingShipmentOrders }}</strong>
-        </div>
-        <div class="in-transit">
-          <span>ขนส่งกำลังจัดส่ง</span><strong>{{ report.summary.inTransitOrders }}</strong>
-        </div>
-        <div class="unpaid-orders">
-          <span>รอชำระเงิน</span><strong>{{ report.summary.unpaidOrders }}</strong>
-        </div>
-        <div class="completed-orders">
-          <span>สำเร็จ</span><strong>{{ report.summary.completedOrders }}</strong>
-        </div>
-        <div class="exchanged-orders">
-          <span>เปลี่ยนสินค้า</span><strong>{{ report.summary.exchangedOrders }}</strong>
-        </div>
-        <div class="returned-orders">
-          <span>คืนสินค้า</span><strong>{{ report.summary.returnedOrders }}</strong>
-        </div>
+      <section class="dashboard-counts" aria-label="กรองออเดอร์ตามสถานะ">
+        <button class="total-orders" type="button" [class.selected]="isStatusSelected('all')" [attr.aria-pressed]="isStatusSelected('all')" (click)="selectStatusFilter('all')">
+          <span><i class="status-dot"></i>ทั้งหมด</span><strong>{{ report.summary.totalOrders }}</strong>
+        </button>
+        <button class="awaiting-shipment" type="button" [class.selected]="isStatusSelected('awaiting_shipment')" [attr.aria-pressed]="isStatusSelected('awaiting_shipment')" (click)="selectStatusFilter('awaiting_shipment')">
+          <span><i class="status-dot"></i>ที่ต้องจัดส่ง</span><strong>{{ report.summary.awaitingShipmentOrders }}</strong>
+        </button>
+        <button class="in-transit" type="button" [class.selected]="isStatusSelected('in_transit')" [attr.aria-pressed]="isStatusSelected('in_transit')" (click)="selectStatusFilter('in_transit')">
+          <span><i class="status-dot"></i>ขนส่งกำลังจัดส่ง</span><strong>{{ report.summary.inTransitOrders }}</strong>
+        </button>
+        <button class="unpaid-orders" type="button" [class.selected]="isStatusSelected('unpaid')" [attr.aria-pressed]="isStatusSelected('unpaid')" (click)="selectStatusFilter('unpaid')">
+          <span><i class="status-dot"></i>รอชำระเงิน</span><strong>{{ report.summary.unpaidOrders }}</strong>
+        </button>
+        <button class="completed-orders" type="button" [class.selected]="isStatusSelected('completed')" [attr.aria-pressed]="isStatusSelected('completed')" (click)="selectStatusFilter('completed')">
+          <span><i class="status-dot"></i>สำเร็จ</span><strong>{{ report.summary.completedOrders }}</strong>
+        </button>
+        <button class="exchanged-orders" type="button" [class.selected]="isStatusSelected('exchanged')" [attr.aria-pressed]="isStatusSelected('exchanged')" (click)="selectStatusFilter('exchanged')">
+          <span><i class="status-dot"></i>เปลี่ยนสินค้า</span><strong>{{ report.summary.exchangedOrders }}</strong>
+        </button>
+        <button class="returned-orders" type="button" [class.selected]="isStatusSelected('returned')" [attr.aria-pressed]="isStatusSelected('returned')" (click)="selectStatusFilter('returned')">
+          <span><i class="status-dot"></i>คืนสินค้า</span><strong>{{ report.summary.returnedOrders }}</strong>
+        </button>
       </section>
 
       
@@ -161,15 +199,21 @@ import { formatThaiDate } from './thai-date';
           } @else {
             <div class="sales-chart" role="img" aria-label="กราฟยอดขาย">
               @for (day of report.dailySales; track day.date) {
-                <div class="sales-bar-column" [title]="day.date + ': ' + money(day.salesCents)">
+                <div class="sales-bar-column">
                   <span class="sales-bar-value">{{ shortMoney(day.salesCents) }}</span>
                   <div class="sales-bar-track">
+                    <svg class="sales-chart-grid" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                      <line x1="0" y1="25" x2="100" y2="25" />
+                      <line x1="0" y1="50" x2="100" y2="50" />
+                      <line x1="0" y1="75" x2="100" y2="75" />
+                    </svg>
                     <span
                       class="sales-bar"
                       [style.height.%]="barHeight(day.salesCents, report.dailySales)"
                     ></span>
                   </div>
                   <span class="sales-bar-date">{{ trendLabel(day.date) }}</span>
+                  <span class="sales-tooltip">{{ day.date }} · {{ money(day.salesCents) }}</span>
                 </div>
               }
             </div>
@@ -186,12 +230,22 @@ import { formatThaiDate } from './thai-date';
           } @else {
             <div class="dashboard-list">
               @for (product of report.topProducts; track product.productId) {
-                <div class="dashboard-list-row">
-                  <span
-                    ><strong>{{ product.name }}</strong
-                    ><small>{{ product.sku }} · ขายแล้ว {{ product.quantity }} ชิ้น</small></span
-                  >
-                  <strong>{{ money(product.salesCents) }}</strong>
+                <div class="dashboard-list-row product-row">
+                  <span class="product-rank">{{ $index + 1 }}</span>
+                  @if (product.imageUrl) {
+                    <img class="product-thumbnail" [src]="product.imageUrl" [alt]="product.name" />
+                  } @else {
+                    <span class="product-thumbnail product-thumbnail-placeholder" aria-hidden="true">□</span>
+                  }
+                  <span class="product-info">
+                    <strong>{{ product.name }}</strong>
+                    <span class="product-meta">
+                      <small class="product-sku">{{ product.sku }}</small>
+                      <small>{{ product.quantity }} ชิ้น</small>
+                    </span>
+                    <span class="product-progress"><i [style.width.%]="productBarWidth(product.quantity, report.topProducts)"></i></span>
+                  </span>
+                  <strong class="product-revenue">{{ money(product.salesCents) }}</strong>
                 </div>
               }
             </div>
@@ -343,6 +397,52 @@ export class DashboardComponent implements OnInit {
     if (!report || page < 1 || page > report.pages || page === this.page) return;
     this.page = page;
     this.loadDashboard();
+  }
+
+  protected selectStatusFilter(
+    status:
+      | 'all'
+      | 'awaiting_shipment'
+      | 'in_transit'
+      | 'unpaid'
+      | 'completed'
+      | 'exchanged'
+      | 'returned',
+  ): void {
+    if (status === 'all') {
+      this.orderStatus = '';
+      this.paymentStatus = '';
+    } else if (status === 'unpaid') {
+      this.paymentStatus = this.paymentStatus === 'unpaid' ? '' : 'unpaid';
+      this.orderStatus = '';
+    } else {
+      this.orderStatus = this.orderStatus === status ? '' : status;
+      this.paymentStatus = '';
+    }
+    this.applyFilters();
+  }
+
+  protected isStatusSelected(
+    status:
+      | 'all'
+      | 'awaiting_shipment'
+      | 'in_transit'
+      | 'unpaid'
+      | 'completed'
+      | 'exchanged'
+      | 'returned',
+  ): boolean {
+    if (status === 'all') return !this.orderStatus && !this.paymentStatus;
+    if (status === 'unpaid') return this.paymentStatus === 'unpaid';
+    return this.orderStatus === status;
+  }
+
+  protected productBarWidth(
+    quantity: number,
+    products: DashboardData['topProducts'],
+  ): number {
+    const maxQuantity = Math.max(...products.map((product) => product.quantity), 1);
+    return Math.max(8, (quantity / maxQuantity) * 100);
   }
 
   private loadDashboard(): void {

@@ -4,7 +4,11 @@
     <span>กำลังเตรียมระบบ...</span>
   </main>
 } @else if (user(); as currentUser) {
-  <div class="workspace-shell">
+  <div
+    class="workspace-shell"
+    [class.theme-dark]="themeMode() === 'dark'"
+    [class.theme-transitioning]="themeTransitioning()"
+  >
     <aside class="sidebar">
       <a class="brand" href="#" (click)="$event.preventDefault(); selectTab('dashboard')">
         <span class="brand-mark" aria-hidden="true">
@@ -176,31 +180,9 @@
       </nav>
 
       <div class="sidebar-bottom">
-        <div class="workspace-card">
-          <div class="workspace-card-icon">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M12 3.5 4.5 7v5.1c0 4.3 3.2 7.7 7.5 8.9 4.3-1.2 7.5-4.6 7.5-8.9V7L12 3.5Z"
-                stroke="currentColor"
-                stroke-width="1.6"
-                stroke-linejoin="round"
-              />
-              <path
-                d="m9 12 2 2 4-4"
-                stroke="currentColor"
-                stroke-width="1.6"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-          <strong>พื้นที่จัดการส่วนตัว</strong>
-          <p>เฉพาะสมาชิกที่ได้รับอนุญาตเท่านั้นที่เข้าถึงร้านได้</p>
-        </div>
         <div class="sidebar-footer">
           <span class="online-dot"></span>
           <span>ระบบมีความปลอดภัย</span>
-          <span class="footer-version">ผู้ดูแล</span>
         </div>
       </div>
     </aside>
@@ -254,11 +236,42 @@
               }
             </strong>
           </div>
-          <div class="account-copy">
-            <strong>{{ currentUser.name }}</strong>
-            <span>{{ roleLabel }}</span>
+          <button
+            class="theme-toggle"
+            type="button"
+            [attr.aria-label]="themeMode() === 'light' ? 'เปลี่ยนเป็นธีมมืด' : 'เปลี่ยนเป็นธีมสว่าง'"
+            [attr.title]="themeMode() === 'light' ? 'เปลี่ยนเป็นธีมมืด' : 'เปลี่ยนเป็นธีมสว่าง'"
+            [attr.aria-pressed]="themeMode() === 'dark'"
+            (click)="toggleTheme()"
+          >
+            @if (themeMode() === 'dark') {
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="10" cy="10" r="3.3" stroke="currentColor" stroke-width="1.5" />
+                <path
+                  d="M10 2v1.5m0 13V18m8-8h-1.5m-13 0H2m13.66-5.66-1.06 1.06M5.4 14.6l-1.06 1.06m11.32 0-1.06-1.06M5.4 5.4 4.34 4.34"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+            } @else {
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path
+                  d="M16.4 12.2A6.8 6.8 0 0 1 7.8 3.6a6.8 6.8 0 1 0 8.6 8.6Z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            }
+          </button>
+          <div class="account-profile">
+            <span class="avatar" aria-label="อักษรย่อผู้ใช้">{{ userInitials }}</span>
+            <div class="account-copy">
+              <strong>{{ currentUser.name }}</strong>
+              <span>{{ roleLabel }}</span>
+            </div>
           </div>
-          <span class="avatar" aria-label="อักษรย่อผู้ใช้">{{ userInitials }}</span>
           <button
             class="logout-button"
             type="button"
@@ -306,13 +319,13 @@
         } @else if (activeTab() === 'orders') {
           <app-order-management (commissionChanged)="loadCommissionSummary()" />
         } @else if (activeTab() === 'products') {
-          <section class="page-heading subpage-heading">
+          <section class="page-heading subpage-heading product-page-heading">
             <div>
               <div class="eyebrow"><span class="eyebrow-line"></span> รายการสินค้า</div>
-              <h1>สินค้า<span class="heading-period">.</span></h1>
+              <h1>สินค้า</h1>
               <p class="page-subtitle">ดูและจัดการสินค้าของร้าน</p>
             </div>
-            <button class="primary-action" type="button" (click)="openProductEditor()">
+            <button class="primary-action product-primary-action" type="button" (click)="openProductEditor()">
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path
                   d="M10 4v12M4 10h12"
@@ -334,39 +347,40 @@
             </div>
           }
 
-          <section class="product-toolbar">
-            <div class="product-search">
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.5" />
-                <path
-                  d="m13.2 13.2 4 4"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
+          <section class="product-catalog-card" aria-label="แค็ตตาล็อกสินค้า">
+            <section class="product-toolbar" aria-label="ค้นหาและกรองสินค้า">
+              <div class="product-search">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.5" />
+                  <path
+                    d="m13.2 13.2 4 4"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <input
+                  type="search"
+                  placeholder="ค้นหาชื่อสินค้า SKU หรือหมวดหมู่"
+                  aria-label="ค้นหาสินค้า"
+                  [ngModel]="productSearch()"
+                  (ngModelChange)="productSearch.set($event)"
                 />
-              </svg>
-              <input
-                type="search"
-                placeholder="ค้นหาชื่อสินค้า SKU หรือหมวดหมู่"
-                aria-label="ค้นหาสินค้า"
-                [ngModel]="productSearch()"
-                (ngModelChange)="productSearch.set($event)"
-              />
-            </div>
-            <label class="product-filter">
-              <span>สถานะ</span>
-              <select
-                aria-label="กรองสินค้าตามสถานะ"
-                [ngModel]="productStatus()"
-                (ngModelChange)="productStatus.set($event)"
-              >
-                <option value="all">สินค้าทั้งหมด</option>
-                <option value="active">เปิดใช้งาน</option>
-                <option value="inactive">ปิดใช้งาน</option>
-              </select>
-            </label>
-            <span class="product-count">{{ filteredProducts().length }} รายการ</span>
-          </section>
+              </div>
+              <label class="product-filter">
+                <span>สถานะ</span>
+                <select
+                  aria-label="กรองสินค้าตามสถานะ"
+                  [ngModel]="productStatus()"
+                  (ngModelChange)="productStatus.set($event)"
+                >
+                  <option value="all">สินค้าทั้งหมด</option>
+                  <option value="active">เปิดใช้งาน</option>
+                  <option value="inactive">ปิดใช้งาน</option>
+                </select>
+              </label>
+              <span class="product-count">{{ filteredProducts().length }} รายการ</span>
+            </section>
 
           @if (productsLoading()) {
             <section class="product-loading">
@@ -455,16 +469,16 @@
                           }
                           <span class="table-product-copy">
                             <strong>{{ product.name }}</strong>
-                            <small>{{ product.images.length }} รูป</small>
+                            <small class="product-image-count">{{ product.images.length }} รูป</small>
                           </span>
                         </div>
                       </td>
                       <td>
                         <span class="sku-value">{{ product.sku }}</span>
                       </td>
-                      <td>{{ product.category }}</td>
+                      <td><span class="category-value">{{ product.category }}</span></td>
                       <td class="price-value">฿{{ product.sellingPrice | number: '1.2-2' }}</td>
-                      <td class="price-value">฿{{ product.profitPerUnit | number: '1.2-2' }}</td>
+                      <td class="price-value profit-value">฿{{ product.profitPerUnit | number: '1.2-2' }}</td>
                       <td>
                         <span class="product-status" [class.status-inactive]="!product.isActive">
                           <span></span>{{ product.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
@@ -475,21 +489,35 @@
                           <button
                             class="text-action"
                             type="button"
+                            title="แก้ไขสินค้า"
+                            [attr.aria-label]="'แก้ไขสินค้า ' + product.name"
                             (click)="openProductEditor(product)"
                             [disabled]="!!changingProductId()"
                           >
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                              <path d="m13.7 3.8 2.5 2.5M4 16l3.6-.7 8.8-8.8a1.8 1.8 0 0 0-2.5-2.5l-8.8 8.8L4 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
                             แก้ไข
                           </button>
                           <button
                             class="text-action"
                             type="button"
                             [class.activate-action]="!product.isActive"
+                            [attr.title]="product.isActive ? 'ปิดใช้งานสินค้า' : 'เปิดใช้งานสินค้า'"
+                            [attr.aria-label]="(product.isActive ? 'ปิดใช้งานสินค้า ' : 'เปิดใช้งานสินค้า ') + product.name"
                             (click)="toggleProductStatus(product)"
                             [disabled]="!!changingProductId()"
                           >
                             @if (changingProductId() === product._id) {
                               <span class="button-spinner"></span>
                             } @else {
+                              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                @if (product.isActive) {
+                                  <path d="M7.5 3.5h5m-8 2h11m-9.5 0 .6 10h4.8l.6-10M8 8v5m4-5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                                } @else {
+                                  <path d="M10 4v12m-6-6h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                                }
+                              </svg>
                               {{ product.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน' }}
                             }
                           </button>
@@ -501,6 +529,7 @@
               </table>
             </section>
           }
+          </section>
 
           @if (showProductEditor()) {
             <div class="modal-backdrop">
@@ -721,7 +750,40 @@
     </div>
   </div>
 } @else {
-  <main class="login-layout">
+  <main
+    class="login-layout"
+    [class.theme-dark]="themeMode() === 'dark'"
+    [class.theme-transitioning]="themeTransitioning()"
+  >
+    <button
+      class="theme-toggle login-theme-toggle"
+      type="button"
+      [attr.aria-label]="themeMode() === 'light' ? 'เปลี่ยนเป็นธีมมืด' : 'เปลี่ยนเป็นธีมสว่าง'"
+      [attr.title]="themeMode() === 'light' ? 'เปลี่ยนเป็นธีมมืด' : 'เปลี่ยนเป็นธีมสว่าง'"
+      [attr.aria-pressed]="themeMode() === 'dark'"
+      (click)="toggleTheme()"
+    >
+      @if (themeMode() === 'dark') {
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="10" r="3.3" stroke="currentColor" stroke-width="1.5" />
+          <path
+            d="M10 2v1.5m0 13V18m8-8h-1.5m-13 0H2m13.66-5.66-1.06 1.06M5.4 14.6l-1.06 1.06m11.32 0-1.06-1.06M5.4 5.4 4.34 4.34"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+      } @else {
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path
+            d="M16.4 12.2A6.8 6.8 0 0 1 7.8 3.6a6.8 6.8 0 1 0 8.6 8.6Z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linejoin="round"
+          />
+        </svg>
+      }
+    </button>
     <section class="login-side">
       <div class="login-card">
         <a class="brand login-brand" href="#" (click)="$event.preventDefault()">

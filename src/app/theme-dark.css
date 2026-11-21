@@ -1,0 +1,565 @@
+.workspace-shell.theme-dark {
+  color-scheme: dark;
+  --ink: #e2e8f0;
+  --muted: #94a3b8;
+  --line: #293548;
+  --paper: #111827;
+  --canvas: #0b1120;
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+.workspace-shell.theme-transitioning,
+.login-layout.theme-transitioning,
+.workspace-shell.theme-transitioning *,
+.login-layout.theme-transitioning *,
+.workspace-shell.theme-transitioning *::before,
+.workspace-shell.theme-transitioning *::after,
+.login-layout.theme-transitioning *::before,
+.login-layout.theme-transitioning *::after {
+  transition-property: color, background-color, border-color, box-shadow, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+.workspace-shell.theme-dark .sidebar,
+.workspace-shell.theme-dark .main-footer,
+.workspace-shell.theme-dark .product-catalog-card,
+.workspace-shell.theme-dark .product-toolbar,
+.workspace-shell.theme-dark .orders-data-card,
+.workspace-shell.theme-dark .orders-toolbar,
+.workspace-shell.theme-dark .dashboard-filters,
+.workspace-shell.theme-dark .dashboard-metric,
+.workspace-shell.theme-dark .dashboard-card,
+.workspace-shell.theme-dark .settings-card,
+.workspace-shell.theme-dark .team-card,
+.workspace-shell.theme-dark .team-table-wrap,
+.workspace-shell.theme-dark .product-empty,
+.workspace-shell.theme-dark .product-loading {
+  border-color: #293548;
+  background-color: #111827;
+}
+
+.workspace-shell.theme-dark .topbar {
+  border-color: #293548;
+  background: rgba(15, 23, 42, 0.88);
+}
+
+.workspace-shell.theme-dark .sidebar,
+.workspace-shell.theme-dark .main-footer {
+  border-color: #293548;
+}
+
+.workspace-shell.theme-dark .sidebar .brand-copy strong,
+.workspace-shell.theme-dark .account-commission strong,
+.workspace-shell.theme-dark .account-copy strong,
+.workspace-shell.theme-dark .breadcrumb strong,
+.workspace-shell.theme-dark .page-heading h1,
+.workspace-shell.theme-dark .dashboard-heading h1,
+.workspace-shell.theme-dark .orders-heading h1,
+.workspace-shell.theme-dark .settings-heading h1,
+.workspace-shell.theme-dark .team-heading h1,
+.workspace-shell.theme-dark .dashboard-metric .metric-value,
+.workspace-shell.theme-dark .dashboard-counts button > strong,
+.workspace-shell.theme-dark .dashboard-card header h2,
+.workspace-shell.theme-dark .product-table td,
+.workspace-shell.theme-dark .orders-table td,
+.workspace-shell.theme-dark .team-table td,
+.workspace-shell.theme-dark .settings-card h2,
+.workspace-shell.theme-dark .team-card h2,
+.workspace-shell.theme-dark .order-modal-header h2,
+.workspace-shell.theme-dark .details-customer h3,
+.workspace-shell.theme-dark .details-items h3 {
+  color: #e2e8f0;
+}
+
+.workspace-shell.theme-dark .sidebar .brand-copy small,
+.workspace-shell.theme-dark .nav-item,
+.workspace-shell.theme-dark .breadcrumb,
+.workspace-shell.theme-dark .account-commission span,
+.workspace-shell.theme-dark .account-copy span,
+.workspace-shell.theme-dark .page-subtitle,
+.workspace-shell.theme-dark .dashboard-heading p,
+.workspace-shell.theme-dark .dashboard-eyebrow,
+.workspace-shell.theme-dark .dashboard-loading,
+.workspace-shell.theme-dark .dashboard-empty,
+.workspace-shell.theme-dark .orders-heading p,
+.workspace-shell.theme-dark .settings-heading p,
+.workspace-shell.theme-dark .team-heading p,
+.workspace-shell.theme-dark .dashboard-table td,
+.workspace-shell.theme-dark .dashboard-pagination,
+.workspace-shell.theme-dark .dashboard-list-row,
+.workspace-shell.theme-dark .product-count,
+.workspace-shell.theme-dark .product-table td,
+.workspace-shell.theme-dark .orders-table td,
+.workspace-shell.theme-dark .team-table td,
+.workspace-shell.theme-dark .settings-grid label > span,
+.workspace-shell.theme-dark .team-card label,
+.workspace-shell.theme-dark .order-form-grid label > span,
+.workspace-shell.theme-dark .details-customer p,
+.workspace-shell.theme-dark .details-totals,
+.workspace-shell.theme-dark .order-modal-header p {
+  color: #94a3b8;
+}
+
+.workspace-shell.theme-dark .nav-item:hover,
+.workspace-shell.theme-dark .account-profile:hover,
+.workspace-shell.theme-dark .logout-button:hover:not(:disabled),
+.workspace-shell.theme-dark .theme-toggle:hover,
+.workspace-shell.theme-dark .orders-table tbody tr:hover td {
+  border-color: #334155;
+  color: #f1f5f9;
+  background: #1e293b;
+}
+
+.workspace-shell.theme-dark .nav-item.active {
+  color: #fff;
+  background: #334155;
+}
+
+.workspace-shell.theme-dark .sidebar-footer,
+.workspace-shell.theme-dark .account-commission,
+.workspace-shell.theme-dark .theme-toggle,
+.workspace-shell.theme-dark .dashboard-costs .other-expenses,
+.workspace-shell.theme-dark .dashboard-pagination button,
+.workspace-shell.theme-dark .product-toolbar .product-filter,
+.workspace-shell.theme-dark .product-image-count,
+.workspace-shell.theme-dark .sku-value,
+.workspace-shell.theme-dark .category-value,
+.workspace-shell.theme-dark .product-rank,
+.workspace-shell.theme-dark .product-sku,
+.workspace-shell.theme-dark .orders-page-controls button,
+.workspace-shell.theme-dark .orders-secondary-action,
+.workspace-shell.theme-dark .secondary-button,
+.workspace-shell.theme-dark .team-card button:not(.team-primary) {
+  border-color: #334155;
+  color: #cbd5e1;
+  background: #1e293b;
+}
+
+.workspace-shell.theme-dark .sidebar .brand-mark {
+  border-color: #334155;
+  color: #f8fafc;
+  background: #1e293b;
+}
+
+.workspace-shell.theme-dark .online-dot {
+  box-shadow: 0 0 0 3px #14532d;
+}
+
+.workspace-shell.theme-dark .logout-button {
+  color: #cbd5e1;
+}
+
+.workspace-shell.theme-dark .theme-toggle:focus-visible {
+  outline-color: #818cf8;
+}
+
+.workspace-shell.theme-dark .page-content,
+.workspace-shell.theme-dark .main-column {
+  background-color: #0b1120;
+}
+
+.workspace-shell.theme-dark .orders-bulk-toolbar,
+.workspace-shell.theme-dark .details-customer,
+.workspace-shell.theme-dark .payment-slip-section,
+.workspace-shell.theme-dark .order-total-preview,
+.workspace-shell.theme-dark .team-table th,
+.workspace-shell.theme-dark .settings-card footer,
+.workspace-shell.theme-dark .orders-table th,
+.workspace-shell.theme-dark .product-table th,
+.workspace-shell.theme-dark .dashboard-table th {
+  border-color: #293548;
+  background: #172033;
+}
+
+.workspace-shell.theme-dark :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+  border-color: #334155;
+  color: #e2e8f0;
+  background-color: #0f172a;
+}
+
+.workspace-shell.theme-dark :is(input, textarea)::placeholder {
+  color: #64748b;
+}
+
+.workspace-shell.theme-dark select option {
+  color: #e2e8f0;
+  background: #0f172a;
+}
+
+.workspace-shell.theme-dark .product-search,
+.workspace-shell.theme-dark .orders-search,
+.workspace-shell.theme-dark .orders-filter select,
+.workspace-shell.theme-dark .orders-date-filter input,
+.workspace-shell.theme-dark .orders-bulk-toolbar select,
+.workspace-shell.theme-dark .dashboard-search,
+.workspace-shell.theme-dark .dashboard-date-range input,
+.workspace-shell.theme-dark .dashboard-filter-secondary select,
+.workspace-shell.theme-dark .settings-grid input,
+.workspace-shell.theme-dark .settings-grid select,
+.workspace-shell.theme-dark .settings-grid textarea,
+.workspace-shell.theme-dark .team-card input,
+.workspace-shell.theme-dark .order-form-grid input,
+.workspace-shell.theme-dark .order-form-grid select,
+.workspace-shell.theme-dark .order-form-grid textarea,
+.workspace-shell.theme-dark .add-order-item select,
+.workspace-shell.theme-dark .draft-item input {
+  border-color: #334155;
+  color: #e2e8f0;
+  background: #0f172a;
+}
+
+.workspace-shell.theme-dark .product-table th,
+.workspace-shell.theme-dark .orders-table th,
+.workspace-shell.theme-dark .dashboard-table th,
+.workspace-shell.theme-dark .team-table th {
+  color: #94a3b8;
+}
+
+.workspace-shell.theme-dark .product-table td,
+.workspace-shell.theme-dark .orders-table td,
+.workspace-shell.theme-dark .dashboard-table td,
+.workspace-shell.theme-dark .team-table td,
+.workspace-shell.theme-dark .dashboard-card header,
+.workspace-shell.theme-dark .dashboard-filter-secondary,
+.workspace-shell.theme-dark .settings-card header,
+.workspace-shell.theme-dark .settings-card footer,
+.workspace-shell.theme-dark .team-table th,
+.workspace-shell.theme-dark .team-table td,
+.workspace-shell.theme-dark .orders-pagination {
+  border-color: #293548;
+}
+
+.workspace-shell.theme-dark .table-product-copy strong,
+.workspace-shell.theme-dark .price-value,
+.workspace-shell.theme-dark .orders-table td.amount-col,
+.workspace-shell.theme-dark .dashboard-list-row,
+.workspace-shell.theme-dark .product-revenue,
+.workspace-shell.theme-dark .order-number,
+.workspace-shell.theme-dark .customer-name {
+  color: #e2e8f0 !important;
+}
+
+.workspace-shell.theme-dark .profit-value {
+  color: #34d399 !important;
+}
+
+.workspace-shell.theme-dark .product-status {
+  border-color: #166534;
+  color: #86efac;
+  background: #052e1a;
+}
+
+.workspace-shell.theme-dark .product-status > span {
+  background: #4ade80;
+}
+
+.workspace-shell.theme-dark .product-status.status-inactive {
+  border-color: #334155;
+  color: #94a3b8;
+  background: #1e293b;
+}
+
+.workspace-shell.theme-dark .product-status.status-inactive > span {
+  background: #64748b;
+}
+
+.workspace-shell.theme-dark .text-action,
+.workspace-shell.theme-dark .order-icon-button,
+.workspace-shell.theme-dark .orders-page-controls button {
+  color: #cbd5e1;
+}
+
+.workspace-shell.theme-dark .text-action:hover:not(:disabled),
+.workspace-shell.theme-dark .order-icon-button:hover:not(:disabled),
+.workspace-shell.theme-dark .orders-page-controls button:hover:not(:disabled),
+.workspace-shell.theme-dark .dashboard-pagination button:hover:not(:disabled) {
+  border-color: #475569;
+  color: #f8fafc;
+  background: #334155;
+}
+
+.workspace-shell.theme-dark .text-action.activate-action {
+  color: #86efac;
+}
+
+.workspace-shell.theme-dark .status-pill,
+.workspace-shell.theme-dark .payment-status-pill,
+.workspace-shell.theme-dark .commission-status {
+  border-color: #334155;
+  color: #cbd5e1;
+  background: #1e293b;
+}
+
+.workspace-shell.theme-dark .status-pill[data-status='awaiting_shipment'],
+.workspace-shell.theme-dark .payment-status-pill[data-status='pending_verification'],
+.workspace-shell.theme-dark .commission-status {
+  border-color: #854d0e;
+  color: #fcd34d;
+  background: #422006;
+}
+
+.workspace-shell.theme-dark .status-pill[data-status='in_transit'] {
+  border-color: #1e40af;
+  color: #93c5fd;
+  background: #172554;
+}
+
+.workspace-shell.theme-dark .status-pill[data-status='completed'],
+.workspace-shell.theme-dark .payment-status-pill[data-status='paid'],
+.workspace-shell.theme-dark .commission-status[data-status='paid'] {
+  border-color: #166534;
+  color: #86efac;
+  background: #052e1a;
+}
+
+.workspace-shell.theme-dark .status-pill[data-status='returned'],
+.workspace-shell.theme-dark .status-pill[data-status='exchanged'],
+.workspace-shell.theme-dark .payment-status-pill[data-status='unpaid'] {
+  border-color: #991b1b;
+  color: #fca5a5;
+  background: #450a0a;
+}
+
+.workspace-shell.theme-dark .payment-status-pill[data-status='refunded'] {
+  border-color: #5b21b6;
+  color: #c4b5fd;
+  background: #2e1065;
+}
+
+.workspace-shell.theme-dark .dashboard-counts button {
+  border-color: #334155;
+  color: #cbd5e1;
+  background: #111827;
+}
+
+.workspace-shell.theme-dark .dashboard-counts button:hover {
+  border-color: #475569;
+  background: #1e293b;
+}
+
+.workspace-shell.theme-dark .dashboard-counts button.selected {
+  border-color: #6366f1;
+  background: #24234a;
+}
+
+.workspace-shell.theme-dark .dashboard-metric .metric-heading {
+  color: #cbd5e1;
+}
+
+.workspace-shell.theme-dark .metric-icon {
+  border-color: #334155;
+  background: #1e293b;
+}
+
+.workspace-shell.theme-dark .dashboard-progress,
+.workspace-shell.theme-dark .product-progress {
+  background: #334155;
+}
+
+.workspace-shell.theme-dark .settings-card footer button,
+.workspace-shell.theme-dark .team-primary {
+  border-color: #4f46e5;
+  background: #4338ca;
+}
+
+.workspace-shell.theme-dark .order-modal,
+.workspace-shell.theme-dark .product-modal {
+  border-color: #334155;
+  color: #e2e8f0;
+  background: #111827;
+}
+
+.workspace-shell.theme-dark .order-modal-header,
+.workspace-shell.theme-dark .order-modal-footer,
+.workspace-shell.theme-dark .modal-header,
+.workspace-shell.theme-dark .modal-footer {
+  border-color: #293548;
+  background: #111827;
+}
+
+.workspace-shell.theme-dark .modal-close,
+.workspace-shell.theme-dark .modal-close:hover {
+  border-color: #334155;
+  color: #cbd5e1;
+  background: #1e293b;
+}
+
+.workspace-shell.theme-dark .orders-alert,
+.workspace-shell.theme-dark .dashboard-alert,
+.workspace-shell.theme-dark .team-alert,
+.workspace-shell.theme-dark .settings-message {
+  border-color: #7f1d1d;
+  color: #fecaca;
+  background: #450a0a;
+}
+
+.workspace-shell.theme-dark .orders-notice,
+.workspace-shell.theme-dark .team-notice {
+  border-color: #166534;
+  color: #bbf7d0;
+  background: #052e1a;
+}
+
+.workspace-shell.theme-dark .settings-success {
+  border-color: #166534;
+  color: #bbf7d0;
+  background: #052e1a;
+}
+
+.workspace-shell.theme-dark .orders-table td.amount-col {
+  color: #e2e8f0 !important;
+}
+
+.workspace-shell.theme-dark .orders-empty,
+.workspace-shell.theme-dark .orders-loading,
+.workspace-shell.theme-dark .product-empty,
+.workspace-shell.theme-dark .product-loading {
+  color: #94a3b8;
+}
+
+.workspace-shell.theme-dark .order-total-preview,
+.workspace-shell.theme-dark .details-totals .grand-total {
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+.workspace-shell.theme-dark .details-totals strong,
+.workspace-shell.theme-dark .order-total-preview strong {
+  color: #e2e8f0;
+}
+
+.workspace-shell.theme-dark app-dashboard .dashboard-metric .metric-value {
+  color: #f8fafc;
+}
+
+.workspace-shell.theme-dark .sales-bar-track {
+  border-bottom-color: #334155;
+  background: #0f172a;
+}
+
+.workspace-shell.theme-dark .sales-chart-grid line {
+  stroke: #334155;
+}
+
+.workspace-shell.theme-dark .sales-bar-value {
+  color: #cbd5e1;
+}
+
+.workspace-shell.theme-dark .sales-bar-date {
+  color: #94a3b8;
+}
+
+.login-layout.theme-dark {
+  color-scheme: dark;
+  color: #e2e8f0;
+  background: #0b1120;
+}
+
+.login-layout.theme-dark .login-card {
+  border-color: #293548;
+  background: #111827;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.24);
+}
+
+.login-layout.theme-dark .login-brand .brand-mark {
+  border-color: #334155;
+  color: #e2e8f0;
+  background: #1e293b;
+}
+
+.login-layout.theme-dark .login-brand .brand-copy strong,
+.login-layout.theme-dark .login-card h2 {
+  color: #f1f5f9;
+}
+
+.login-layout.theme-dark .login-brand .brand-copy small,
+.login-layout.theme-dark .login-description,
+.login-layout.theme-dark .login-form > label,
+.login-layout.theme-dark .password-label-row label {
+  color: #94a3b8;
+}
+
+.login-layout.theme-dark .input-wrap {
+  border-color: #334155;
+  color: #94a3b8;
+  background: #0f172a;
+}
+
+.login-layout.theme-dark .input-wrap input {
+  color: #e2e8f0;
+}
+
+.login-layout.theme-dark .input-wrap input::placeholder {
+  color: #64748b;
+}
+
+.login-layout.theme-dark .password-toggle:hover:not(:disabled) {
+  color: #e2e8f0;
+  background: #1e293b;
+}
+
+.login-layout.theme-dark .login-error {
+  border-color: #7f1d1d;
+  color: #fecaca;
+  background: #450a0a;
+}
+
+.login-layout.theme-dark .login-theme-toggle {
+  border-color: #334155;
+  color: #cbd5e1;
+  background: #1e293b;
+}
+
+.workspace-shell.theme-dark :is(
+  .page-heading h1,
+  .dashboard-heading h1,
+  .orders-heading h1,
+  .settings-heading h1,
+  .team-heading h1,
+  .dashboard-card header h2,
+  .settings-card h2,
+  .team-card h2,
+  .order-modal-header h2
+) {
+  color: #f8fafc;
+}
+
+.workspace-shell.theme-dark app-dashboard .metric-heading,
+.workspace-shell.theme-dark app-dashboard .dashboard-card header > span,
+.workspace-shell.theme-dark app-dashboard .dashboard-eyebrow,
+.workspace-shell.theme-dark app-dashboard .dashboard-heading p,
+.workspace-shell.theme-dark .orders-heading p,
+.workspace-shell.theme-dark .page-subtitle,
+.workspace-shell.theme-dark .settings-heading p,
+.workspace-shell.theme-dark .team-heading p {
+  color: #cbd5e1;
+}
+
+.workspace-shell.theme-dark app-dashboard .product-info > strong {
+  color: #f1f5f9 !important;
+}
+
+.workspace-shell.theme-dark app-dashboard .product-meta small {
+  color: #cbd5e1;
+}
+
+.workspace-shell.theme-dark .product-table th,
+.workspace-shell.theme-dark .orders-table th,
+.workspace-shell.theme-dark app-dashboard .dashboard-table th,
+.workspace-shell.theme-dark app-team-management .team-table th {
+  color: #cbd5e1;
+}
+
+.workspace-shell.theme-dark app-dashboard .dashboard-wide .dashboard-table td {
+  color: #e2e8f0;
+}
+
+.workspace-shell.theme-dark app-dashboard .dashboard-wide .dashboard-table td small {
+  color: #94a3b8;
+}
+
+.workspace-shell.theme-dark app-dashboard .dashboard-card > header > h2 {
+  color: #fff !important;
+}

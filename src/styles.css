@@ -1,4 +1,5 @@
 @import './app/app.css';
+@import './app/theme-dark.css';
 
 :root {
   color-scheme: light;

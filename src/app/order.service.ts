@@ -163,6 +163,7 @@ export interface DashboardData {
     sku: string;
     quantity: number;
     salesCents: number;
+    imageUrl?: string;
   }>;
   recentOrders: Order[];
   range: { from: string; to: string };
