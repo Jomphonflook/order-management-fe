@@ -13,6 +13,7 @@ import { thaiErrorMessage } from './error-message';
 
 type WorkspaceTab = 'dashboard' | 'orders' | 'products' | 'settings' | 'users';
 type ProductStatusFilter = 'all' | 'active' | 'inactive';
+type ThemeMode = 'light' | 'dark';
 
 interface ProductForm {
   name: string;
@@ -48,6 +49,8 @@ export class App implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly loggingOut = signal(false);
   protected readonly activeTab = signal<WorkspaceTab>('dashboard');
+  protected readonly themeMode = signal<ThemeMode>('light');
+  protected readonly themeTransitioning = signal(false);
   protected readonly errorMessage = signal('');
   protected readonly showPassword = signal(false);
   protected readonly products = signal<Product[]>([]);
@@ -77,6 +80,7 @@ export class App implements OnInit {
   protected readonly productForm = this.emptyProductForm();
   protected email = '';
   protected password = '';
+  private themeTransitionTimer: ReturnType<typeof setTimeout> | undefined;
 
   ngOnInit(): void {
     this.auth.getCurrentUser().subscribe({
@@ -158,6 +162,16 @@ export class App implements OnInit {
     if (tab !== 'products') {
       this.productNotice.set('');
     }
+  }
+
+  protected toggleTheme(): void {
+    this.themeMode.update((theme) => (theme === 'light' ? 'dark' : 'light'));
+    this.themeTransitioning.set(true);
+    clearTimeout(this.themeTransitionTimer);
+    this.themeTransitionTimer = setTimeout(() => {
+      this.themeTransitioning.set(false);
+      this.themeTransitionTimer = undefined;
+    }, 200);
   }
 
   protected loadCommissionSummary(): void {
